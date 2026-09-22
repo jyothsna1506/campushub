@@ -1,0 +1,471 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  --color-primary: #1d4ed8;
+  --color-primary-hover: #1e40af;
+  --color-secondary: #0f766e;
+  --color-secondary-hover: #115e59;
+  --color-background: #f8fafc;
+  --color-surface: #ffffff;
+  --color-border: #e2e8f0;
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #475569;
+  --color-success: #16a34a;
+  --color-warning: #d97706;
+  --color-danger: #dc2626;
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    tab-size: 4;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  button {
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  input,
+  button,
+  textarea,
+  select {
+    font: inherit;
+  }
+}
+
+/* ------------------------------------------------------------
+   Continuous Scroll Storytelling & Layered Handoff (Phase 6 - Task 6A)
+   ------------------------------------------------------------ */
+
+/* Continuous Scroll-Driven Section Container */
+.story-section {
+  position: relative;
+  opacity: var(--scroll-opacity, 1);
+  transform: translate3d(0, var(--scroll-y, 0px), 0);
+  will-change: opacity, transform;
+}
+
+/* Stacking Layering Hierarchy for intentional visual handoffs:
+   incoming sections glide up and over preceding receded sections */
+[data-story-section="0"] { z-index: 10; }
+[data-story-section="1"] { z-index: 20; }
+[data-story-section="2"] { z-index: 30; }
+[data-story-section="3"] { z-index: 40; }
+[data-story-section="4"] { z-index: 50; }
+[data-story-section="5"] { z-index: 60; }
+[data-story-section="6"] { z-index: 70; }
+
+/* Immediate restoration of focus & full interactivity on hover or keyboard focus */
+.story-section:hover,
+.story-section:focus-within {
+  opacity: 1 !important;
+  transform: translate3d(0, 0, 0) !important;
+  transition: opacity 250ms cubic-bezier(0.16, 1, 0.3, 1),
+              transform 250ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+/* Section-Specific Motion: Product Preview Mockup Window Lift */
+[data-preview-mockup] {
+  transform: translate3d(0, var(--preview-lift, 0px), 0);
+  will-change: transform;
+}
+
+/* Section-Specific Motion: Features Progressive Card Wave */
+[data-feature-card] {
+  opacity: var(--card-opacity, 1);
+  transform: translate3d(0, var(--card-y, 0px), 0);
+  will-change: opacity, transform;
+  transition: box-shadow 200ms ease, border-color 200ms ease;
+}
+
+/* Section-Specific Motion: Product Story Narrative & Visuals */
+[data-story-visual] {
+  opacity: var(--visual-opacity, 1);
+  transform: translate3d(0, var(--visual-y, 0px), 0);
+  will-change: opacity, transform;
+}
+
+[data-story-point] {
+  opacity: var(--point-opacity, 1);
+  transform: translate3d(0, var(--point-y, 0px), 0);
+  will-change: opacity, transform;
+}
+
+/* Section-Specific Motion: Collaboration Team Cards Stagger */
+[data-team-card] {
+  opacity: var(--team-opacity, 1);
+  transform: translate3d(0, var(--team-y, 0px), 0);
+  will-change: opacity, transform;
+  transition: box-shadow 200ms ease, border-color 200ms ease;
+}
+
+/* Section-Specific Motion: Opportunities Connected Sequence */
+[data-opp-card] {
+  opacity: var(--opp-opacity, 1);
+  transform: translate3d(0, var(--opp-y, 0px), 0);
+  will-change: opacity, transform;
+  transition: box-shadow 200ms ease, border-color 200ms ease;
+}
+
+[data-opp-connector] {
+  width: var(--line-progress, 0%);
+  transition: width 80ms linear;
+}
+
+/* Section-Specific Motion: Final CTA Grounded Card */
+[data-cta-card] {
+  transform: translate3d(0, var(--cta-lift, 0px), 0);
+  will-change: transform;
+}
+
+/* Non-blocking ScrollReveal compatibility fallback (always visible) */
+.scroll-reveal {
+  opacity: 1;
+  transform: none;
+}
+
+/* Immediate entrance for hero elements with small stagger */
+.hero-entrance {
+  animation: heroFadeIn 600ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.hero-pill {
+  animation: heroFadeIn 550ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 0ms;
+}
+
+.hero-title {
+  animation: heroFadeIn 600ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 60ms;
+}
+
+.hero-subtitle {
+  animation: heroFadeIn 600ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 120ms;
+}
+
+.hero-actions {
+  animation: heroFadeIn 600ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 180ms;
+}
+
+.hero-stats {
+  animation: heroFadeIn 650ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 240ms;
+}
+
+@keyframes heroFadeIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 16px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* ------------------------------------------------------------
+   Micro-interactions & Polish (Phase 6B)
+   ------------------------------------------------------------ */
+
+/* Primary CTA Button / Link */
+.btn-cta-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  border-radius: 0.75rem;
+  background-color: #1d4ed8;
+  color: #ffffff !important;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 200ms cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  user-select: none;
+  text-decoration: none;
+}
+
+.btn-cta-primary:hover {
+  background-color: #1e40af;
+  color: #ffffff !important;
+  transform: translate3d(0, -1.5px, 0);
+  box-shadow: 0 4px 14px -2px rgba(29, 78, 216, 0.35);
+}
+
+.btn-cta-primary:active {
+  background-color: #1e3a8a;
+  color: #ffffff !important;
+  transform: translate3d(0, 0.5px, 0) scale(0.99);
+  box-shadow: 0 1px 2px 0 rgba(29, 78, 216, 0.2);
+}
+
+.btn-cta-primary:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #1d4ed8;
+}
+
+/* Secondary CTA Button / Link */
+.btn-cta-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  border-radius: 0.75rem;
+  background-color: #ffffff;
+  color: #1e293b !important;
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+  transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 200ms cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 200ms cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 200ms cubic-bezier(0.16, 1, 0.3, 1),
+              color 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  user-select: none;
+  text-decoration: none;
+}
+
+.btn-cta-secondary:hover {
+  background-color: #f8fafc;
+  border-color: #94a3b8;
+  color: #0f172a !important;
+  transform: translate3d(0, -1.5px, 0);
+  box-shadow: 0 4px 10px -2px rgba(15, 23, 42, 0.08);
+}
+
+.btn-cta-secondary:active {
+  background-color: #f1f5f9;
+  transform: translate3d(0, 0.5px, 0) scale(0.99);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+}
+
+.btn-cta-secondary:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #1d4ed8;
+}
+
+/* Dark Background Inverted Primary CTA (e.g. Final CTA banner) */
+.btn-cta-invert-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  border-radius: 0.75rem;
+  background-color: #ffffff;
+  color: #1e3a8a !important;
+  box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.12);
+  transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 200ms cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  user-select: none;
+  text-decoration: none;
+}
+
+.btn-cta-invert-primary:hover {
+  background-color: #f8fafc;
+  color: #172554 !important;
+  transform: translate3d(0, -1.5px, 0);
+  box-shadow: 0 8px 20px -2px rgba(0, 0, 0, 0.22);
+}
+
+.btn-cta-invert-primary:active {
+  background-color: #f1f5f9;
+  transform: translate3d(0, 0.5px, 0) scale(0.99);
+  box-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.1);
+}
+
+.btn-cta-invert-primary:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #1e3a8a, 0 0 0 4px #ffffff;
+}
+
+/* Dark Background Inverted Secondary CTA */
+.btn-cta-invert-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  border-radius: 0.75rem;
+  background-color: rgba(30, 58, 138, 0.7);
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 200ms cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 200ms cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  user-select: none;
+  text-decoration: none;
+}
+
+.btn-cta-invert-secondary:hover {
+  background-color: rgba(30, 58, 138, 0.95);
+  border-color: rgba(255, 255, 255, 0.6);
+  color: #ffffff !important;
+  transform: translate3d(0, -1.5px, 0);
+  box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.2);
+}
+
+.btn-cta-invert-secondary:active {
+  background-color: rgba(30, 58, 138, 1);
+  transform: translate3d(0, 0.5px, 0) scale(0.99);
+}
+
+.btn-cta-invert-secondary:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #1e3a8a, 0 0 0 4px #ffffff;
+}
+
+/* Card Hover Micro-interactions (Desktop hover only to avoid mobile touch stickiness) */
+@media (hover: hover) and (pointer: fine) {
+  [data-feature-card]:hover {
+    transform: translate3d(0, calc(var(--card-y, 0px) - 2.5px), 0);
+    box-shadow: 0 10px 22px -4px rgba(15, 23, 42, 0.08), 0 4px 6px -2px rgba(15, 23, 42, 0.03);
+    border-color: #cbd5e1;
+  }
+
+  [data-team-card]:hover {
+    transform: translate3d(0, calc(var(--team-y, 0px) - 2.5px), 0);
+    box-shadow: 0 10px 22px -4px rgba(15, 23, 42, 0.08), 0 4px 6px -2px rgba(15, 23, 42, 0.03);
+    border-color: #cbd5e1;
+  }
+
+  [data-opp-card]:hover {
+    transform: translate3d(0, calc(var(--opp-y, 0px) - 2.5px), 0);
+    box-shadow: 0 10px 22px -4px rgba(15, 23, 42, 0.08), 0 4px 6px -2px rgba(15, 23, 42, 0.03);
+    border-color: #cbd5e1;
+  }
+
+  .interactive-subcard:hover {
+    transform: translate3d(0, -2px, 0);
+    box-shadow: 0 6px 16px -3px rgba(15, 23, 42, 0.08);
+    border-color: #cbd5e1;
+  }
+}
+
+.interactive-subcard {
+  transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 200ms cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Arrow Slide Micro-interaction */
+.arrow-slide {
+  display: inline-block;
+  transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.group:hover .arrow-slide {
+  transform: translate3d(3px, 0, 0);
+}
+
+.arrow-slide-down {
+  display: inline-block;
+  transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.group:hover .arrow-slide-down {
+  transform: translate3d(0, 2.5px, 0);
+}
+
+/* Accessibility: Strict Reduced Motion Override */
+@media (prefers-reduced-motion: reduce) {
+  .story-section,
+  .story-section:hover,
+  .story-section:focus-within,
+  [data-preview-mockup],
+  [data-feature-card],
+  [data-feature-card]:hover,
+  [data-story-visual],
+  [data-story-point],
+  [data-team-card],
+  [data-team-card]:hover,
+  [data-opp-card],
+  [data-opp-card]:hover,
+  [data-opp-connector],
+  [data-cta-card],
+  .scroll-reveal,
+  .hero-entrance,
+  .hero-pill,
+  .hero-title,
+  .hero-subtitle,
+  .hero-actions,
+  .hero-stats,
+  .btn-cta-primary,
+  .btn-cta-secondary,
+  .btn-cta-invert-primary,
+  .btn-cta-invert-secondary,
+  .btn-cta-primary:hover,
+  .btn-cta-secondary:hover,
+  .btn-cta-invert-primary:hover,
+  .btn-cta-invert-secondary:hover,
+  .btn-cta-primary:active,
+  .btn-cta-secondary:active,
+  .btn-cta-invert-primary:active,
+  .btn-cta-invert-secondary:active,
+  .interactive-subcard,
+  .interactive-subcard:hover,
+  .arrow-slide,
+  .arrow-slide-down,
+  .group:hover .arrow-slide,
+  .group:hover .arrow-slide-down {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+    transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease !important;
+  }
+
+  html {
+    scroll-behavior: auto !important;
+  }
+}
+
+@media print {
+  .story-section,
+  .story-section:hover,
+  .story-section:focus-within,
+  [data-preview-mockup],
+  [data-feature-card],
+  [data-story-visual],
+  [data-story-point],
+  [data-team-card],
+  [data-opp-card],
+  [data-opp-connector],
+  [data-cta-card],
+  .scroll-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}

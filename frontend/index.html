@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="CampusHub is a college collaboration platform for discovering clubs, events, project teams, announcements, and opportunities." />
+    <meta name="theme-color" content="#1d4ed8" />
+    <title>CampusHub — College Collaboration Platform</title>
+    <script>
+      // Immediate document title lock
+      document.title = "CampusHub — College Collaboration Platform";
+
+      // Proactively unregister any legacy service workers on localhost:5173
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          for (var i = 0; i < registrations.length; i++) {
+            registrations[i].unregister();
+          }
+        });
+      }
+
+      // Proactively clear any legacy CacheStorage from localhost:5173
+      if ('caches' in window) {
+        caches.keys().then(function(names) {
+          for (var j = 0; j < names.length; j++) {
+            caches.delete(names[j]);
+          }
+        });
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
