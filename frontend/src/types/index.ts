@@ -201,3 +201,22 @@ export interface OpportunityResponse {
   createdAt: string
   active: boolean
 }
+
+// Admin Types
+export interface AdminDashboardStatsResponse {
+  totalUsers: number
+  totalClubs: number
+  activeClubs: number
+  totalEvents: number
+  activeEvents: number
+  totalTeams: number
+  totalAnnouncements: number
+  activeAnnouncements: number
+  totalOpportunities: number
+  activeOpportunities: number
+}
+
+export interface UpdateUserRoleRequest {
+  role: 'STUDENT' | 'ADMIN'
+}
+

@@ -99,6 +99,15 @@ public class TeamJoinRequestService {
                 .toList();
     }
 
+    public List<TeamJoinRequestResponse> adminGetTeamRequests(Long teamId) {
+        if (!teamRepository.existsById(teamId)) {
+            throw new ResourceNotFoundException("Team not found with id: " + teamId);
+        }
+        return teamJoinRequestRepository.findByTeamId(teamId).stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
+
     @Transactional
     public TeamJoinRequestResponse acceptJoinRequest(Long requestId, String userEmail) {
         TeamJoinRequest request = teamJoinRequestRepository.findById(requestId)

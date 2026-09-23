@@ -99,6 +99,32 @@ public class EventService {
         eventRepository.delete(event);
     }
 
+    @Transactional
+    public EventResponse adminUpdateEvent(Long id, EventRequest request) {
+        validateEventTiming(request);
+
+        Event event = eventRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Event not found with id: " + id));
+
+        event.setTitle(request.getTitle());
+        event.setDescription(request.getDescription());
+        event.setCategory(request.getCategory());
+        event.setVenue(request.getVenue());
+        event.setStartTime(request.getStartTime());
+        event.setEndTime(request.getEndTime());
+        event.setCapacity(request.getCapacity());
+
+        Event updatedEvent = eventRepository.save(event);
+        return mapToResponse(updatedEvent);
+    }
+
+    @Transactional
+    public void adminDeleteEvent(Long id) {
+        Event event = eventRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Event not found with id: " + id));
+        eventRepository.delete(event);
+    }
+
     private void validateEventTiming(EventRequest request) {
         if (request.getStartTime() == null || request.getEndTime() == null) {
             throw new IllegalArgumentException("Start time and end time are required");

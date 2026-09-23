@@ -89,6 +89,27 @@ public class AnnouncementService {
         announcementRepository.delete(announcement);
     }
 
+    @Transactional
+    public AnnouncementResponse adminUpdateAnnouncement(Long id, AnnouncementRequest request) {
+        Announcement announcement = announcementRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Announcement not found with id: " + id));
+
+        announcement.setTitle(request.getTitle());
+        announcement.setContent(request.getContent());
+        announcement.setCategory(request.getCategory());
+        announcement.setPriority(request.getPriority());
+
+        Announcement updatedAnnouncement = announcementRepository.save(announcement);
+        return mapToResponse(updatedAnnouncement);
+    }
+
+    @Transactional
+    public void adminDeleteAnnouncement(Long id) {
+        Announcement announcement = announcementRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Announcement not found with id: " + id));
+        announcementRepository.delete(announcement);
+    }
+
     private AnnouncementResponse mapToResponse(Announcement announcement) {
         if (announcement == null) {
             return null;

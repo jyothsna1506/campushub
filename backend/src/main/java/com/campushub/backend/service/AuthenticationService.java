@@ -11,6 +11,8 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
+
 @Service
 public class AuthenticationService {
 
@@ -47,7 +49,8 @@ public class AuthenticationService {
         userResponse.setBio(user.getBio());
         userResponse.setRole(user.getRole());
 
-        String token = jwtService.generateToken(user.getEmail());
+        String role = user.getRole() != null ? user.getRole() : "STUDENT";
+        String token = jwtService.generateToken(Map.of("role", role), user.getEmail());
 
         AuthResponse response = new AuthResponse();
         response.setToken(token);

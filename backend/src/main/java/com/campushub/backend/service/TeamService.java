@@ -116,6 +116,16 @@ public class TeamService {
         teamRepository.delete(team);
     }
 
+    @Transactional
+    public void adminDeleteTeam(Long id) {
+        Team team = teamRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Team not found with id: " + id));
+
+        teamJoinRequestRepository.deleteByTeamId(id);
+        teamMemberRepository.deleteByTeamId(id);
+        teamRepository.delete(team);
+    }
+
     public TeamResponse mapToResponse(Team team) {
         if (team == null) {
             return null;

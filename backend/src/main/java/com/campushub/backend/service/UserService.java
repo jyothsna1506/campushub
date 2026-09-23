@@ -93,14 +93,59 @@ public class UserService {
         if (updatedUser.getYear() != null) {
             existingUser.setYear(updatedUser.getYear());
         }
-        if (updatedUser.getRole() != null) {
-            existingUser.setRole(updatedUser.getRole());
-        }
         if (updatedUser.getBio() != null) {
             existingUser.setBio(updatedUser.getBio());
         }
 
         User savedUser = userRepository.save(existingUser);
+        return mapToUserResponse(savedUser);
+    }
+
+    public List<UserResponse> getUsers(String search, String role) {
+        List<User> users;
+        boolean hasSearch = search != null && !search.isBlank();
+        boolean hasRole = role != null && !role.isBlank();
+
+        if (hasSearch && hasRole) {
+            String term = search.trim();
+            String r = role.trim().toUpperCase();
+            users = userRepository.findByRoleAndFullNameContainingIgnoreCaseOrRoleAndEmailContainingIgnoreCase(
+                    r, term, r, term
+            );
+        } else if (hasSearch) {
+            String term = search.trim();
+            users = userRepository.findByFullNameContainingIgnoreCaseOrEmailContainingIgnoreCase(term, term);
+        } else if (hasRole) {
+            users = userRepository.findByRole(role.trim().toUpperCase());
+        } else {
+            users = userRepository.findAll();
+        }
+
+        return users.stream().map(this::mapToUserResponse).toList();
+    }
+
+    public UserResponse updateUserRole(Long id, String newRole) {
+        if (newRole == null || newRole.isBlank()) {
+            throw new IllegalArgumentException("Role cannot be empty");
+        }
+        String normalizedRole = newRole.trim().toUpperCase();
+        if (!"ADMIN".equals(normalizedRole) && !"STUDENT".equals(normalizedRole)) {
+            throw new IllegalArgumentException("Invalid role: " + newRole + ". Must be STUDENT or ADMIN");
+        }
+
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
+
+        // Safeguard: Prevent accidental removal of the last administrator
+        if ("ADMIN".equalsIgnoreCase(user.getRole()) && !"ADMIN".equals(normalizedRole)) {
+            long adminCount = userRepository.countByRole("ADMIN");
+            if (adminCount <= 1) {
+                throw new IllegalStateException("Cannot remove the last remaining administrator");
+            }
+        }
+
+        user.setRole(normalizedRole);
+        User savedUser = userRepository.save(user);
         return mapToUserResponse(savedUser);
     }
 

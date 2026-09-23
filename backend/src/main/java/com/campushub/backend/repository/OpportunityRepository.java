@@ -12,4 +12,6 @@ public interface OpportunityRepository extends JpaRepository<Opportunity, Long> 
     List<Opportunity> findByActiveTrueOrderByApplicationDeadlineAsc();
 
     List<Opportunity> findAllByOrderByApplicationDeadlineAsc();
+
+    long countByActiveTrue();
 }

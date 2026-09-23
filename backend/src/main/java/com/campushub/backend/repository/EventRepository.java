@@ -12,4 +12,6 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     List<Event> findByActiveTrueOrderByStartTimeAsc();
 
     List<Event> findAllByOrderByStartTimeAsc();
+
+    long countByActiveTrue();
 }

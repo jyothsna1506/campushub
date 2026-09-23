@@ -102,6 +102,34 @@ public class OpportunityService {
         opportunityRepository.delete(opportunity);
     }
 
+    @Transactional
+    public OpportunityResponse adminUpdateOpportunity(Long id, OpportunityRequest request) {
+        Opportunity opportunity = opportunityRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Opportunity not found with id: " + id));
+
+        if (request.getApplicationDeadline() != null) {
+            validateDeadline(request.getApplicationDeadline());
+            opportunity.setApplicationDeadline(request.getApplicationDeadline());
+        }
+
+        opportunity.setTitle(request.getTitle());
+        opportunity.setDescription(request.getDescription());
+        opportunity.setOrganization(request.getOrganization());
+        opportunity.setType(request.getType());
+        opportunity.setLocation(request.getLocation());
+        opportunity.setApplicationUrl(request.getApplicationUrl());
+
+        Opportunity updatedOpportunity = opportunityRepository.save(opportunity);
+        return mapToResponse(updatedOpportunity);
+    }
+
+    @Transactional
+    public void adminDeleteOpportunity(Long id) {
+        Opportunity opportunity = opportunityRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Opportunity not found with id: " + id));
+        opportunityRepository.delete(opportunity);
+    }
+
     private void validateDeadline(LocalDate deadline) {
         if (deadline == null) {
             throw new IllegalArgumentException("Application deadline is required");

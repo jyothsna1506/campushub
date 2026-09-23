@@ -14,6 +14,15 @@ import AnnouncementsPage from './pages/AnnouncementsPage'
 import OpportunitiesPage from './pages/OpportunitiesPage'
 import ProfilePage from './pages/ProfilePage'
 import NotFoundPage from './pages/NotFoundPage'
+import AdminRoute from './components/AdminRoute'
+import AdminLayout from './layouts/AdminLayout'
+import AdminDashboardPage from './pages/admin/AdminDashboardPage'
+import AdminUsersPage from './pages/admin/AdminUsersPage'
+import AdminClubsPage from './pages/admin/AdminClubsPage'
+import AdminEventsPage from './pages/admin/AdminEventsPage'
+import AdminTeamsPage from './pages/admin/AdminTeamsPage'
+import AdminAnnouncementsPage from './pages/admin/AdminAnnouncementsPage'
+import AdminOpportunitiesPage from './pages/admin/AdminOpportunitiesPage'
 
 export default function App() {
   useEffect(() => {
@@ -38,6 +47,19 @@ export default function App() {
               <Route path="/announcements" element={<AnnouncementsPage />} />
               <Route path="/opportunities" element={<OpportunitiesPage />} />
               <Route path="/profile" element={<ProfilePage />} />
+            </Route>
+          </Route>
+
+          {/* Admin Application Routes (Protected with AdminRoute & AdminLayout) */}
+          <Route element={<AdminRoute />}>
+            <Route element={<AdminLayout />}>
+              <Route path="/admin" element={<AdminDashboardPage />} />
+              <Route path="/admin/users" element={<AdminUsersPage />} />
+              <Route path="/admin/clubs" element={<AdminClubsPage />} />
+              <Route path="/admin/events" element={<AdminEventsPage />} />
+              <Route path="/admin/teams" element={<AdminTeamsPage />} />
+              <Route path="/admin/announcements" element={<AdminAnnouncementsPage />} />
+              <Route path="/admin/opportunities" element={<AdminOpportunitiesPage />} />
             </Route>
           </Route>
 
