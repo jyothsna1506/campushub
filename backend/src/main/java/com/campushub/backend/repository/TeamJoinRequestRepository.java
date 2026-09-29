@@ -20,4 +20,6 @@ public interface TeamJoinRequestRepository extends JpaRepository<TeamJoinRequest
     List<TeamJoinRequest> findByUserId(Long userId);
 
     void deleteByTeamId(Long teamId);
+
+    void deleteByUserId(Long userId);
 }

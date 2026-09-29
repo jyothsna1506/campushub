@@ -37,7 +37,7 @@ public class AuthenticationService {
         );
 
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + request.getEmail()));
+                .orElseThrow(() -> new org.springframework.security.authentication.BadCredentialsException("Invalid email or password"));
 
         UserResponse userResponse = new UserResponse();
         userResponse.setId(user.getId());

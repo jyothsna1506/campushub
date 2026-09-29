@@ -6,6 +6,7 @@ import com.campushub.backend.entity.Event;
 import com.campushub.backend.entity.User;
 import com.campushub.backend.exception.ResourceNotFoundException;
 import com.campushub.backend.repository.EventRepository;
+import com.campushub.backend.repository.EventRsvpRepository;
 import com.campushub.backend.repository.UserRepository;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -17,10 +18,14 @@ import java.util.List;
 public class EventService {
 
     private final EventRepository eventRepository;
+    private final EventRsvpRepository eventRsvpRepository;
     private final UserRepository userRepository;
 
-    public EventService(EventRepository eventRepository, UserRepository userRepository) {
+    public EventService(EventRepository eventRepository,
+                        EventRsvpRepository eventRsvpRepository,
+                        UserRepository userRepository) {
         this.eventRepository = eventRepository;
+        this.eventRsvpRepository = eventRsvpRepository;
         this.userRepository = userRepository;
     }
 
@@ -96,6 +101,7 @@ public class EventService {
             throw new AccessDeniedException("Only the event organizer can delete this event");
         }
 
+        eventRsvpRepository.deleteByEventId(id);
         eventRepository.delete(event);
     }
 
@@ -122,6 +128,7 @@ public class EventService {
     public void adminDeleteEvent(Long id) {
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Event not found with id: " + id));
+        eventRsvpRepository.deleteByEventId(id);
         eventRepository.delete(event);
     }
 

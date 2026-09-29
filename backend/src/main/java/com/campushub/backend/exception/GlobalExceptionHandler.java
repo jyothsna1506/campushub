@@ -74,8 +74,8 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<ErrorResponse> handleBadCredentials(BadCredentialsException ex) {
+    @ExceptionHandler({BadCredentialsException.class, org.springframework.security.core.AuthenticationException.class})
+    public ResponseEntity<ErrorResponse> handleAuthenticationException(Exception ex) {
         ErrorResponse response = new ErrorResponse(
                 HttpStatus.UNAUTHORIZED.value(),
                 "Unauthorized",

@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 @Configuration
 public class SecurityConfig {
 
-    @Value("${app.cors.allowed-origins:http://localhost:5173}")
+    @Value("${app.cors.allowed-origins:http://localhost:5173,http://127.0.0.1:5173}")
     private String allowedOrigins;
 
     @Bean
@@ -72,8 +72,16 @@ public class SecurityConfig {
                 .collect(Collectors.toList());
         configuration.setAllowedOrigins(origins);
 
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        configuration.setAllowedHeaders(List.of(
+                "Authorization",
+                "Content-Type",
+                "X-Requested-With",
+                "Accept",
+                "Origin",
+                "Access-Control-Request-Method",
+                "Access-Control-Request-Headers"
+        ));
         configuration.setExposedHeaders(List.of("Authorization"));
         configuration.setAllowCredentials(false);
 

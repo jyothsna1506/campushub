@@ -4,8 +4,10 @@ import com.campushub.backend.dto.ClubRequest;
 import com.campushub.backend.dto.ClubResponse;
 import com.campushub.backend.entity.Club;
 import com.campushub.backend.exception.ResourceNotFoundException;
+import com.campushub.backend.repository.ClubMemberRepository;
 import com.campushub.backend.repository.ClubRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -13,11 +15,14 @@ import java.util.List;
 public class ClubService {
 
     private final ClubRepository clubRepository;
+    private final ClubMemberRepository clubMemberRepository;
 
-    public ClubService(ClubRepository clubRepository) {
+    public ClubService(ClubRepository clubRepository, ClubMemberRepository clubMemberRepository) {
         this.clubRepository = clubRepository;
+        this.clubMemberRepository = clubMemberRepository;
     }
 
+    @Transactional
     public ClubResponse createClub(ClubRequest request) {
         Club club = new Club();
         club.setName(request.getName());
@@ -49,6 +54,7 @@ public class ClubService {
         return mapToResponse(club);
     }
 
+    @Transactional
     public ClubResponse updateClub(Long id, ClubRequest request) {
         Club club = clubRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Club not found with id: " + id));
@@ -63,10 +69,12 @@ public class ClubService {
         return mapToResponse(updatedClub);
     }
 
+    @Transactional
     public void deleteClub(Long id) {
         if (!clubRepository.existsById(id)) {
             throw new ResourceNotFoundException("Club not found with id: " + id);
         }
+        clubMemberRepository.deleteByClubId(id);
         clubRepository.deleteById(id);
     }
 

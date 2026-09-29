@@ -22,8 +22,7 @@ public class AnnouncementController {
     }
 
     @PostMapping
-    public ResponseEntity<AnnouncementResponse> createAnnouncement(@Valid @RequestBody AnnouncementRequest request,
-                                                                   Principal principal) {
+    public ResponseEntity<AnnouncementResponse> createAnnouncement(@Valid @RequestBody AnnouncementRequest request,Principal principal) {
         AnnouncementResponse response = announcementService.createAnnouncement(request, principal.getName());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -44,17 +43,14 @@ public class AnnouncementController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<AnnouncementResponse> updateAnnouncement(@PathVariable Long id,
-                                                                   @Valid @RequestBody AnnouncementRequest request,
-                                                                   Principal principal) {
+    public ResponseEntity<AnnouncementResponse> updateAnnouncement(@PathVariable Long id,@Valid @RequestBody AnnouncementRequest request,Principal principal) {
         AnnouncementResponse response = announcementService.updateAnnouncement(id, request, principal.getName());
         return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public ResponseEntity<Void> deleteAnnouncement(@PathVariable Long id,
-                                                   Principal principal) {
+    public ResponseEntity<Void> deleteAnnouncement(@PathVariable Long id,Principal principal) {
         announcementService.deleteAnnouncement(id, principal.getName());
         return ResponseEntity.noContent().build();
     }
