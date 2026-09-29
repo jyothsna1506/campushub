@@ -26,6 +26,10 @@ public class Club {
     @Column(nullable = false)
     private String coordinatorName;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "college_id")
+    private College college;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -33,6 +37,15 @@ public class Club {
     private boolean active = true;
 
     public Club() {
+    }
+
+    public Club(String name, String description, String category, String department, String coordinatorName) {
+        this.name = name;
+        this.description = description;
+        this.category = category;
+        this.department = department;
+        this.coordinatorName = coordinatorName;
+        this.active = true;
     }
 
     @PrePersist
@@ -88,6 +101,14 @@ public class Club {
 
     public void setCoordinatorName(String coordinatorName) {
         this.coordinatorName = coordinatorName;
+    }
+
+    public College getCollege() {
+        return college;
+    }
+
+    public void setCollege(College college) {
+        this.college = college;
     }
 
     public LocalDateTime getCreatedAt() {

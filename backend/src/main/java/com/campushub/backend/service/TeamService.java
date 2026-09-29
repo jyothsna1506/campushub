@@ -45,6 +45,9 @@ public class TeamService {
         team.setCategory(request.getCategory());
         team.setOwner(owner);
         team.setOpenForMembers(request.getOpenForMembers() == null || request.getOpenForMembers());
+        if (owner.getCollege() != null) {
+            team.setCollege(owner.getCollege());
+        }
 
         Team savedTeam = teamRepository.save(team);
 
@@ -56,20 +59,58 @@ public class TeamService {
     }
 
     public List<TeamResponse> getAllTeams() {
+        return getAllTeams(null);
+    }
+
+    public List<TeamResponse> getAllTeams(String userEmail) {
+        if (userEmail != null) {
+            User user = userRepository.findByEmail(userEmail).orElse(null);
+            if (user != null && user.getCollege() != null) {
+                return teamRepository.findByCollegeId(user.getCollege().getId()).stream()
+                        .map(this::mapToResponse)
+                        .toList();
+            }
+        }
         return teamRepository.findAll().stream()
                 .map(this::mapToResponse)
                 .toList();
     }
 
     public List<TeamResponse> getOpenTeams() {
+        return getOpenTeams(null);
+    }
+
+    public List<TeamResponse> getOpenTeams(String userEmail) {
+        if (userEmail != null) {
+            User user = userRepository.findByEmail(userEmail).orElse(null);
+            if (user != null && user.getCollege() != null) {
+                return teamRepository.findByCollegeIdAndOpenForMembersTrue(user.getCollege().getId()).stream()
+                        .map(this::mapToResponse)
+                        .toList();
+            }
+        }
         return teamRepository.findByOpenForMembersTrue().stream()
                 .map(this::mapToResponse)
                 .toList();
     }
 
     public TeamResponse getTeamById(Long id) {
+        return getTeamById(id, null);
+    }
+
+    public TeamResponse getTeamById(Long id, String userEmail) {
         Team team = teamRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Team not found with id: " + id));
+
+        if (userEmail != null) {
+            User user = userRepository.findByEmail(userEmail).orElse(null);
+            if (user != null && user.getCollege() != null && team.getCollege() != null) {
+                if (!user.getCollege().getId().equals(team.getCollege().getId())) {
+                    throw new ResourceNotFoundException("Team not found with id: " + id);
+                }
+            }
+        }
+
         return mapToResponse(team);
     }
 
@@ -118,8 +159,22 @@ public class TeamService {
 
     @Transactional
     public void adminDeleteTeam(Long id) {
+        adminDeleteTeam(id, null);
+    }
+
+    @Transactional
+    public void adminDeleteTeam(Long id, String adminEmail) {
         Team team = teamRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Team not found with id: " + id));
+
+        if (adminEmail != null) {
+            User admin = userRepository.findByEmail(adminEmail).orElse(null);
+            if (admin != null && admin.getCollege() != null && team.getCollege() != null) {
+                if (!admin.getCollege().getId().equals(team.getCollege().getId())) {
+                    throw new ResourceNotFoundException("Team not found with id: " + id);
+                }
+            }
+        }
 
         teamJoinRequestRepository.deleteByTeamId(id);
         teamMemberRepository.deleteByTeamId(id);
@@ -138,7 +193,9 @@ public class TeamService {
                 team.getOwner().getId(),
                 team.getOwner().getFullName(),
                 team.getCreatedAt(),
-                team.isOpenForMembers()
+                team.isOpenForMembers(),
+                team.getCollege() != null ? team.getCollege().getId() : null,
+                team.getCollege() != null ? team.getCollege().getName() : null
         );
     }
 }

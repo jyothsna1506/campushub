@@ -1,5 +1,6 @@
 package com.campushub.backend.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -7,6 +8,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 public class UserResponse {
 
     private Long id;
@@ -17,4 +19,8 @@ public class UserResponse {
     private Integer year;
     private String bio;
     private String role;
+    private Long collegeId;
+    private String collegeName;
+    private String collegeCode;
+    private String profileImageUrl;
 }

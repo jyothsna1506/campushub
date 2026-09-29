@@ -12,4 +12,12 @@ public interface TeamRepository extends JpaRepository<Team, Long> {
     List<Team> findByOpenForMembersTrue();
 
     List<Team> findByOwnerId(Long ownerId);
+
+    List<Team> findByCollegeIdAndOpenForMembersTrue(Long collegeId);
+
+    List<Team> findByCollegeId(Long collegeId);
+
+    java.util.Optional<Team> findByIdAndCollegeId(Long id, Long collegeId);
+
+    long countByCollegeId(Long collegeId);
 }

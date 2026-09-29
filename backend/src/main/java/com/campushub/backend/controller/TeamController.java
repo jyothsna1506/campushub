@@ -28,18 +28,21 @@ public class TeamController {
     }
 
     @GetMapping("/api/teams")
-    public ResponseEntity<List<TeamResponse>> getAllTeams() {
-        return ResponseEntity.ok(teamService.getAllTeams());
+    public ResponseEntity<List<TeamResponse>> getAllTeams(Principal principal) {
+        String email = principal != null ? principal.getName() : null;
+        return ResponseEntity.ok(teamService.getAllTeams(email));
     }
 
     @GetMapping("/api/teams/open")
-    public ResponseEntity<List<TeamResponse>> getOpenTeams() {
-        return ResponseEntity.ok(teamService.getOpenTeams());
+    public ResponseEntity<List<TeamResponse>> getOpenTeams(Principal principal) {
+        String email = principal != null ? principal.getName() : null;
+        return ResponseEntity.ok(teamService.getOpenTeams(email));
     }
 
     @GetMapping("/api/teams/{id}")
-    public ResponseEntity<TeamResponse> getTeamById(@PathVariable Long id) {
-        return ResponseEntity.ok(teamService.getTeamById(id));
+    public ResponseEntity<TeamResponse> getTeamById(@PathVariable Long id, Principal principal) {
+        String email = principal != null ? principal.getName() : null;
+        return ResponseEntity.ok(teamService.getTeamById(id, email));
     }
 
     @GetMapping("/api/users/me/teams")

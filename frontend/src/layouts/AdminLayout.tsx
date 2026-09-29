@@ -180,6 +180,11 @@ export default function AdminLayout() {
         <div className="px-2 py-1 text-xs text-slate-600">
           <p className="font-semibold text-slate-800 truncate">{user?.fullName || 'Administrator'}</p>
           <p className="text-slate-500 text-[11px] truncate">{user?.email}</p>
+          {user?.collegeName && (
+            <p className="text-amber-800 font-medium text-[10px] mt-1 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 truncate">
+              🏛️ {user.collegeName} ({user.collegeCode})
+            </p>
+          )}
         </div>
         <button
           type="button"

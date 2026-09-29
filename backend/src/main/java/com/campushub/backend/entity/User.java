@@ -27,7 +27,18 @@ public class User {
 
     private String role;
 
+    @Column(length = 1000)
     private String bio;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "college_id")
+    private College college;
+
+    @Column(name = "profile_image_url", length = 1000)
+    private String profileImageUrl;
+
+    @Column(name = "profile_image_public_id", length = 255)
+    private String profileImagePublicId;
 
     public User() {
     }
@@ -98,5 +109,29 @@ public class User {
 
     public void setBio(String bio) {
         this.bio = bio;
+    }
+
+    public College getCollege() {
+        return college;
+    }
+
+    public void setCollege(College college) {
+        this.college = college;
+    }
+
+    public String getProfileImageUrl() {
+        return profileImageUrl;
+    }
+
+    public void setProfileImageUrl(String profileImageUrl) {
+        this.profileImageUrl = profileImageUrl;
+    }
+
+    public String getProfileImagePublicId() {
+        return profileImagePublicId;
+    }
+
+    public void setProfileImagePublicId(String profileImagePublicId) {
+        this.profileImagePublicId = profileImagePublicId;
     }
 }

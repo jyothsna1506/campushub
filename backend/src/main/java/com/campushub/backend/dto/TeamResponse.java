@@ -21,4 +21,6 @@ public class TeamResponse {
     private String ownerName;
     private LocalDateTime createdAt;
     private boolean openForMembers;
+    private Long collegeId;
+    private String collegeName;
 }

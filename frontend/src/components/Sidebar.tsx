@@ -16,6 +16,15 @@ const navItems = [
     ),
   },
   {
+    name: 'Community',
+    path: '/community',
+    icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+      </svg>
+    ),
+  },
+  {
     name: 'Clubs',
     path: '/clubs',
     icon: (
@@ -175,8 +184,12 @@ export default function Sidebar({ onClose }: SidebarProps) {
         </button>
 
         <div className="bg-slate-50 rounded-xl p-2.5 border border-slate-100 text-center">
-          <p className="text-xs font-semibold text-slate-700">CampusHub Portal</p>
-          <p className="text-[11px] text-slate-500">Academic Year 2026</p>
+          <p className="text-xs font-semibold text-slate-800 truncate" title={user?.collegeName || 'CampusHub Demo College'}>
+            🏛️ {user?.collegeName || 'CampusHub Demo College'}
+          </p>
+          <p className="text-[10px] font-mono text-slate-500 mt-0.5">
+            {user?.collegeCode ? `CAMPUS: ${user.collegeCode}` : 'CAMPUS PORTAL'}
+          </p>
         </div>
       </div>
     </aside>

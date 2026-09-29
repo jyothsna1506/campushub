@@ -4,6 +4,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -26,6 +27,9 @@ public class RegisterRequest {
     @NotBlank(message = "Password is required")
     @Size(min = 8, max = 72, message = "Password must be between 8 and 72 characters")
     private String password;
+
+    @NotNull(message = "College selection is required")
+    private Long collegeId;
 
     @Size(max = 50, message = "Program must not exceed 50 characters")
     private String program;

@@ -34,6 +34,10 @@ public class Announcement {
     @Column(nullable = false)
     private boolean active = true;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "college_id")
+    private College college;
+
     public Announcement() {
     }
 
@@ -106,5 +110,13 @@ public class Announcement {
 
     public void setActive(boolean active) {
         this.active = active;
+    }
+
+    public College getCollege() {
+        return college;
+    }
+
+    public void setCollege(College college) {
+        this.college = college;
     }
 }

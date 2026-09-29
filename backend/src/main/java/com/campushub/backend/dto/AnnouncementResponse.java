@@ -23,4 +23,6 @@ public class AnnouncementResponse {
     private String authorName;
     private LocalDateTime createdAt;
     private boolean active;
+    private Long collegeId;
+    private String collegeName;
 }

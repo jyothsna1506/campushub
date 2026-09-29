@@ -14,4 +14,16 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     List<Event> findAllByOrderByStartTimeAsc();
 
     long countByActiveTrue();
+
+    List<Event> findByCollegeIdAndActiveTrueOrderByStartTimeAsc(Long collegeId);
+
+    List<Event> findByCollegeIdOrderByStartTimeAsc(Long collegeId);
+
+    java.util.Optional<Event> findByIdAndCollegeIdAndActiveTrue(Long id, Long collegeId);
+
+    java.util.Optional<Event> findByIdAndCollegeId(Long id, Long collegeId);
+
+    long countByCollegeIdAndActiveTrue(Long collegeId);
+
+    long countByCollegeId(Long collegeId);
 }

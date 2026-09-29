@@ -37,6 +37,10 @@ public class ClubMemberService {
         Club club = clubRepository.findById(clubId)
                 .orElseThrow(() -> new ResourceNotFoundException("Club not found with id: " + clubId));
 
+        if (user.getCollege() != null && club.getCollege() != null && !user.getCollege().getId().equals(club.getCollege().getId())) {
+            throw new org.springframework.security.access.AccessDeniedException("Cannot join a club belonging to another college");
+        }
+
         if (clubMemberRepository.existsByUserAndClub(user, club)) {
             throw new DuplicateResourceException("User is already a member of club: " + club.getName());
         }

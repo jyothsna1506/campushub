@@ -46,26 +46,67 @@ public class EventService {
         event.setOrganizer(organizer);
         event.setCapacity(request.getCapacity());
         event.setActive(true);
+        if (organizer.getCollege() != null) {
+            event.setCollege(organizer.getCollege());
+        }
 
         Event savedEvent = eventRepository.save(event);
         return mapToResponse(savedEvent);
     }
 
     public List<EventResponse> getAllEvents() {
+        return getAllEvents(null);
+    }
+
+    public List<EventResponse> getAllEvents(String userEmail) {
+        if (userEmail != null) {
+            User user = userRepository.findByEmail(userEmail).orElse(null);
+            if (user != null && user.getCollege() != null) {
+                return eventRepository.findByCollegeIdOrderByStartTimeAsc(user.getCollege().getId()).stream()
+                        .map(this::mapToResponse)
+                        .toList();
+            }
+        }
         return eventRepository.findAllByOrderByStartTimeAsc().stream()
                 .map(this::mapToResponse)
                 .toList();
     }
 
     public List<EventResponse> getActiveEvents() {
+        return getActiveEvents(null);
+    }
+
+    public List<EventResponse> getActiveEvents(String userEmail) {
+        if (userEmail != null) {
+            User user = userRepository.findByEmail(userEmail).orElse(null);
+            if (user != null && user.getCollege() != null) {
+                return eventRepository.findByCollegeIdAndActiveTrueOrderByStartTimeAsc(user.getCollege().getId()).stream()
+                        .map(this::mapToResponse)
+                        .toList();
+            }
+        }
         return eventRepository.findByActiveTrueOrderByStartTimeAsc().stream()
                 .map(this::mapToResponse)
                 .toList();
     }
 
     public EventResponse getEventById(Long id) {
+        return getEventById(id, null);
+    }
+
+    public EventResponse getEventById(Long id, String userEmail) {
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Event not found with id: " + id));
+
+        if (userEmail != null) {
+            User user = userRepository.findByEmail(userEmail).orElse(null);
+            if (user != null && user.getCollege() != null && event.getCollege() != null) {
+                if (!user.getCollege().getId().equals(event.getCollege().getId())) {
+                    throw new ResourceNotFoundException("Event not found with id: " + id);
+                }
+            }
+        }
+
         return mapToResponse(event);
     }
 
@@ -107,10 +148,24 @@ public class EventService {
 
     @Transactional
     public EventResponse adminUpdateEvent(Long id, EventRequest request) {
+        return adminUpdateEvent(id, request, null);
+    }
+
+    @Transactional
+    public EventResponse adminUpdateEvent(Long id, EventRequest request, String adminEmail) {
         validateEventTiming(request);
 
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Event not found with id: " + id));
+
+        if (adminEmail != null) {
+            User admin = userRepository.findByEmail(adminEmail).orElse(null);
+            if (admin != null && admin.getCollege() != null && event.getCollege() != null) {
+                if (!admin.getCollege().getId().equals(event.getCollege().getId())) {
+                    throw new ResourceNotFoundException("Event not found with id: " + id);
+                }
+            }
+        }
 
         event.setTitle(request.getTitle());
         event.setDescription(request.getDescription());
@@ -126,8 +181,23 @@ public class EventService {
 
     @Transactional
     public void adminDeleteEvent(Long id) {
+        adminDeleteEvent(id, null);
+    }
+
+    @Transactional
+    public void adminDeleteEvent(Long id, String adminEmail) {
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Event not found with id: " + id));
+
+        if (adminEmail != null) {
+            User admin = userRepository.findByEmail(adminEmail).orElse(null);
+            if (admin != null && admin.getCollege() != null && event.getCollege() != null) {
+                if (!admin.getCollege().getId().equals(event.getCollege().getId())) {
+                    throw new ResourceNotFoundException("Event not found with id: " + id);
+                }
+            }
+        }
+
         eventRsvpRepository.deleteByEventId(id);
         eventRepository.delete(event);
     }
@@ -157,7 +227,9 @@ public class EventService {
                 event.getOrganizer().getFullName(),
                 event.getCapacity(),
                 event.getCreatedAt(),
-                event.isActive()
+                event.isActive(),
+                event.getCollege() != null ? event.getCollege().getId() : null,
+                event.getCollege() != null ? event.getCollege().getName() : null
         );
     }
 }

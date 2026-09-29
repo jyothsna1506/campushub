@@ -7,6 +7,7 @@ interface HeaderProps {
 
 const pageTitles: Record<string, string> = {
   '/dashboard': 'Dashboard',
+  '/community': 'Campus Community',
   '/clubs': 'Clubs & Organizations',
   '/events': 'Events Calendar',
   '/teams': 'Project Teams',
@@ -86,9 +87,17 @@ export default function Header({ onMenuClick }: HeaderProps) {
           className="flex items-center gap-2.5 p-1.5 rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-200 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
           title="View profile"
         >
-          <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-bold text-xs flex items-center justify-center border border-blue-200 shadow-2xs">
-            {initials}
-          </div>
+          {user?.profileImageUrl ? (
+            <img
+              src={user.profileImageUrl}
+              alt={displayName}
+              className="w-8 h-8 rounded-full object-cover border border-slate-200 shadow-2xs"
+            />
+          ) : (
+            <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-bold text-xs flex items-center justify-center border border-blue-200 shadow-2xs">
+              {initials}
+            </div>
+          )}
           <div className="hidden lg:block text-left">
             <p className="text-xs font-semibold text-slate-800 leading-none">{displayName}</p>
             <p className="text-[11px] text-slate-500 leading-none mt-1 max-w-[140px] truncate">

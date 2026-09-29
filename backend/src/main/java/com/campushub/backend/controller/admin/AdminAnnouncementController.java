@@ -20,13 +20,13 @@ public class AdminAnnouncementController {
     }
 
     @GetMapping
-    public List<AnnouncementResponse> getAllAnnouncements() {
-        return announcementService.getAllAnnouncements();
+    public List<AnnouncementResponse> getAllAnnouncements(Authentication authentication) {
+        return announcementService.getAllAnnouncements(authentication != null ? authentication.getName() : null);
     }
 
     @GetMapping("/{id}")
-    public AnnouncementResponse getAnnouncementById(@PathVariable Long id) {
-        return announcementService.getAnnouncementById(id);
+    public AnnouncementResponse getAnnouncementById(@PathVariable Long id, Authentication authentication) {
+        return announcementService.getAnnouncementById(id, authentication != null ? authentication.getName() : null);
     }
 
     @PostMapping
@@ -35,12 +35,12 @@ public class AdminAnnouncementController {
     }
 
     @PutMapping("/{id}")
-    public AnnouncementResponse updateAnnouncement(@PathVariable Long id, @Valid @RequestBody AnnouncementRequest request) {
-        return announcementService.adminUpdateAnnouncement(id, request);
+    public AnnouncementResponse updateAnnouncement(@PathVariable Long id, @Valid @RequestBody AnnouncementRequest request, Authentication authentication) {
+        return announcementService.adminUpdateAnnouncement(id, request, authentication != null ? authentication.getName() : null);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteAnnouncement(@PathVariable Long id) {
-        announcementService.adminDeleteAnnouncement(id);
+    public void deleteAnnouncement(@PathVariable Long id, Authentication authentication) {
+        announcementService.adminDeleteAnnouncement(id, authentication != null ? authentication.getName() : null);
     }
 }

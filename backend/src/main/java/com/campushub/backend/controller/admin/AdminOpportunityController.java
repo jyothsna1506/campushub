@@ -20,13 +20,13 @@ public class AdminOpportunityController {
     }
 
     @GetMapping
-    public List<OpportunityResponse> getAllOpportunities() {
-        return opportunityService.getAllOpportunities();
+    public List<OpportunityResponse> getAllOpportunities(Authentication authentication) {
+        return opportunityService.getAllOpportunities(authentication != null ? authentication.getName() : null);
     }
 
     @GetMapping("/{id}")
-    public OpportunityResponse getOpportunityById(@PathVariable Long id) {
-        return opportunityService.getOpportunityById(id);
+    public OpportunityResponse getOpportunityById(@PathVariable Long id, Authentication authentication) {
+        return opportunityService.getOpportunityById(id, authentication != null ? authentication.getName() : null);
     }
 
     @PostMapping
@@ -35,12 +35,12 @@ public class AdminOpportunityController {
     }
 
     @PutMapping("/{id}")
-    public OpportunityResponse updateOpportunity(@PathVariable Long id, @Valid @RequestBody OpportunityRequest request) {
-        return opportunityService.adminUpdateOpportunity(id, request);
+    public OpportunityResponse updateOpportunity(@PathVariable Long id, @Valid @RequestBody OpportunityRequest request, Authentication authentication) {
+        return opportunityService.adminUpdateOpportunity(id, request, authentication != null ? authentication.getName() : null);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteOpportunity(@PathVariable Long id) {
-        opportunityService.adminDeleteOpportunity(id);
+    public void deleteOpportunity(@PathVariable Long id, Authentication authentication) {
+        opportunityService.adminDeleteOpportunity(id, authentication != null ? authentication.getName() : null);
     }
 }

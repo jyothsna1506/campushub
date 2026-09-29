@@ -48,9 +48,16 @@ public class AuthenticationService {
         userResponse.setYear(user.getYear());
         userResponse.setBio(user.getBio());
         userResponse.setRole(user.getRole());
+        if (user.getCollege() != null) {
+            userResponse.setCollegeId(user.getCollege().getId());
+            userResponse.setCollegeName(user.getCollege().getName());
+            userResponse.setCollegeCode(user.getCollege().getCode());
+        }
+        userResponse.setProfileImageUrl(user.getProfileImageUrl());
 
         String role = user.getRole() != null ? user.getRole() : "STUDENT";
-        String token = jwtService.generateToken(Map.of("role", role), user.getEmail());
+        Long collegeId = user.getCollege() != null ? user.getCollege().getId() : 0L;
+        String token = jwtService.generateToken(Map.of("role", role, "collegeId", collegeId), user.getEmail());
 
         AuthResponse response = new AuthResponse();
         response.setToken(token);

@@ -1,4 +1,4 @@
-import { useState, useEffect, type FormEvent } from 'react'
+import { useState, useEffect, useRef, type FormEvent } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { userApi } from '../services/userApi'
 import { getApiErrorMessage } from '../services/api'
@@ -64,7 +64,48 @@ export default function ProfilePage() {
   // View vs Edit Mode
   const [isEditing, setIsEditing] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isUploadingImage, setIsUploadingImage] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+
+  const handleImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (file.size > 5 * 1024 * 1024) {
+      setFeedback({ type: 'error', message: 'Image size cannot exceed 5MB.' })
+      return
+    }
+
+    setIsUploadingImage(true)
+    setFeedback(null)
+    try {
+      const updatedUser = await userApi.uploadProfileImage(file)
+      updateUser(updatedUser)
+      setFeedback({ type: 'success', message: 'Profile photo updated successfully!' })
+    } catch (err) {
+      setFeedback({ type: 'error', message: getApiErrorMessage(err, 'Failed to upload photo') })
+    } finally {
+      setIsUploadingImage(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
+
+  const handleRemovePhoto = async () => {
+    if (!window.confirm('Remove your profile photo?')) return
+
+    setIsUploadingImage(true)
+    setFeedback(null)
+    try {
+      const updatedUser = await userApi.deleteProfileImage()
+      updateUser(updatedUser)
+      setFeedback({ type: 'success', message: 'Profile photo removed.' })
+    } catch (err) {
+      setFeedback({ type: 'error', message: getApiErrorMessage(err, 'Failed to remove photo') })
+    } finally {
+      setIsUploadingImage(false)
+    }
+  }
 
   // Edit Form Fields
   const [fullName, setFullName] = useState('')
@@ -269,8 +310,47 @@ export default function ProfilePage() {
       {/* Profile Card Header (Avatar + Quick Info) */}
       <div className="bg-white rounded-2xl border border-slate-200/80 p-6 sm:p-8 shadow-xs">
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
-          <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-blue-100 text-blue-700 font-bold text-2xl sm:text-3xl flex items-center justify-center border-2 border-blue-200 shadow-2xs flex-shrink-0">
-            {initials}
+          <div className="flex flex-col items-center gap-2 flex-shrink-0">
+            {user.profileImageUrl ? (
+              <img
+                src={user.profileImageUrl}
+                alt={user.fullName}
+                className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover border-2 border-slate-200 shadow-2xs"
+              />
+            ) : (
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-blue-100 text-blue-700 font-bold text-2xl sm:text-3xl flex items-center justify-center border-2 border-blue-200 shadow-2xs">
+                {initials}
+              </div>
+            )}
+
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleImageFileChange}
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              className="hidden"
+            />
+
+            <div className="flex items-center gap-1.5 pt-1">
+              <button
+                type="button"
+                disabled={isUploadingImage}
+                onClick={() => fileInputRef.current?.click()}
+                className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer disabled:opacity-50 transition-colors"
+              >
+                {isUploadingImage ? 'Uploading...' : user.profileImageUrl ? 'Change Photo' : 'Upload Photo'}
+              </button>
+              {user.profileImageUrl && (
+                <button
+                  type="button"
+                  disabled={isUploadingImage}
+                  onClick={handleRemovePhoto}
+                  className="text-xs font-semibold px-2 py-1 rounded-lg hover:bg-rose-50 text-rose-600 cursor-pointer disabled:opacity-50 transition-colors"
+                >
+                  Remove
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="space-y-1.5 text-center sm:text-left min-w-0 flex-1">
@@ -284,6 +364,15 @@ export default function ProfilePage() {
             </div>
 
             <p className="text-sm text-slate-600 truncate">{user.email}</p>
+
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-1">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-blue-50 text-blue-800 border border-blue-200">
+                🏛️ {user.collegeName || 'CampusHub Demo College'} {user.collegeCode ? `(${user.collegeCode})` : ''}
+              </span>
+              <span className="text-[11px] font-medium text-slate-500">
+                Immutable Affiliation
+              </span>
+            </div>
 
             {academicSummary && (
               <p className="text-xs font-medium text-slate-500 pt-1">
@@ -346,6 +435,20 @@ export default function ProfilePage() {
                 <p className="text-sm font-bold text-slate-900 mt-1">
                   {user.branch || 'Not specified'}
                 </p>
+              </div>
+
+              <div className="sm:col-span-2 p-3.5 rounded-xl bg-blue-50/40 border border-blue-100 flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-semibold text-blue-700 uppercase tracking-wider">
+                    Enrolled College / Campus
+                  </p>
+                  <p className="text-sm font-bold text-slate-900 mt-1">
+                    {user.collegeName || 'CampusHub Demo College'} {user.collegeCode ? `(${user.collegeCode})` : ''}
+                  </p>
+                </div>
+                <span className="text-[11px] font-semibold text-slate-600 bg-white border border-slate-200 px-2.5 py-1 rounded-md shadow-2xs">
+                  🔒 Immutable Affiliation
+                </span>
               </div>
             </div>
           </div>
@@ -493,6 +596,22 @@ export default function ProfilePage() {
                     </option>
                   ))}
                 </select>
+              </div>
+
+              {/* College Affiliation (Read-only) */}
+              <div className="sm:col-span-2 space-y-1.5">
+                <label className="block text-xs font-semibold text-slate-700">
+                  College Affiliation <span className="text-slate-400 font-normal">(Read-only)</span>
+                </label>
+                <input
+                  type="text"
+                  value={`${user.collegeName || 'CampusHub Demo College'} ${user.collegeCode ? `(${user.collegeCode})` : ''}`}
+                  disabled
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-100 text-slate-500 text-sm cursor-not-allowed"
+                />
+                <p className="text-[11px] text-slate-400">
+                  College affiliation is permanently assigned at registration and cannot be modified.
+                </p>
               </div>
 
               {/* Bio */}

@@ -21,4 +21,7 @@ public class AdminDashboardStatsResponse {
     private long activeAnnouncements;
     private long totalOpportunities;
     private long activeOpportunities;
+    private Long collegeId;
+    private String collegeName;
+    private String collegeCode;
 }

@@ -36,26 +36,67 @@ public class AnnouncementService {
         announcement.setPriority(request.getPriority());
         announcement.setAuthor(author);
         announcement.setActive(true);
+        if (author.getCollege() != null) {
+            announcement.setCollege(author.getCollege());
+        }
 
         Announcement savedAnnouncement = announcementRepository.save(announcement);
         return mapToResponse(savedAnnouncement);
     }
 
     public List<AnnouncementResponse> getAllAnnouncements() {
+        return getAllAnnouncements(null);
+    }
+
+    public List<AnnouncementResponse> getAllAnnouncements(String userEmail) {
+        if (userEmail != null) {
+            User user = userRepository.findByEmail(userEmail).orElse(null);
+            if (user != null && user.getCollege() != null) {
+                return announcementRepository.findByCollegeIdOrderByCreatedAtDesc(user.getCollege().getId()).stream()
+                        .map(this::mapToResponse)
+                        .toList();
+            }
+        }
         return announcementRepository.findAllByOrderByCreatedAtDesc().stream()
                 .map(this::mapToResponse)
                 .toList();
     }
 
     public List<AnnouncementResponse> getActiveAnnouncements() {
+        return getActiveAnnouncements(null);
+    }
+
+    public List<AnnouncementResponse> getActiveAnnouncements(String userEmail) {
+        if (userEmail != null) {
+            User user = userRepository.findByEmail(userEmail).orElse(null);
+            if (user != null && user.getCollege() != null) {
+                return announcementRepository.findByCollegeIdAndActiveTrueOrderByCreatedAtDesc(user.getCollege().getId()).stream()
+                        .map(this::mapToResponse)
+                        .toList();
+            }
+        }
         return announcementRepository.findByActiveTrueOrderByCreatedAtDesc().stream()
                 .map(this::mapToResponse)
                 .toList();
     }
 
     public AnnouncementResponse getAnnouncementById(Long id) {
+        return getAnnouncementById(id, null);
+    }
+
+    public AnnouncementResponse getAnnouncementById(Long id, String userEmail) {
         Announcement announcement = announcementRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Announcement not found with id: " + id));
+
+        if (userEmail != null) {
+            User user = userRepository.findByEmail(userEmail).orElse(null);
+            if (user != null && user.getCollege() != null && announcement.getCollege() != null) {
+                if (!user.getCollege().getId().equals(announcement.getCollege().getId())) {
+                    throw new ResourceNotFoundException("Announcement not found with id: " + id);
+                }
+            }
+        }
+
         return mapToResponse(announcement);
     }
 
@@ -91,8 +132,22 @@ public class AnnouncementService {
 
     @Transactional
     public AnnouncementResponse adminUpdateAnnouncement(Long id, AnnouncementRequest request) {
+        return adminUpdateAnnouncement(id, request, null);
+    }
+
+    @Transactional
+    public AnnouncementResponse adminUpdateAnnouncement(Long id, AnnouncementRequest request, String adminEmail) {
         Announcement announcement = announcementRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Announcement not found with id: " + id));
+
+        if (adminEmail != null) {
+            User admin = userRepository.findByEmail(adminEmail).orElse(null);
+            if (admin != null && admin.getCollege() != null && announcement.getCollege() != null) {
+                if (!admin.getCollege().getId().equals(announcement.getCollege().getId())) {
+                    throw new ResourceNotFoundException("Announcement not found with id: " + id);
+                }
+            }
+        }
 
         announcement.setTitle(request.getTitle());
         announcement.setContent(request.getContent());
@@ -105,8 +160,23 @@ public class AnnouncementService {
 
     @Transactional
     public void adminDeleteAnnouncement(Long id) {
+        adminDeleteAnnouncement(id, null);
+    }
+
+    @Transactional
+    public void adminDeleteAnnouncement(Long id, String adminEmail) {
         Announcement announcement = announcementRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Announcement not found with id: " + id));
+
+        if (adminEmail != null) {
+            User admin = userRepository.findByEmail(adminEmail).orElse(null);
+            if (admin != null && admin.getCollege() != null && announcement.getCollege() != null) {
+                if (!admin.getCollege().getId().equals(announcement.getCollege().getId())) {
+                    throw new ResourceNotFoundException("Announcement not found with id: " + id);
+                }
+            }
+        }
+
         announcementRepository.delete(announcement);
     }
 
@@ -123,7 +193,9 @@ public class AnnouncementService {
                 announcement.getAuthor().getId(),
                 announcement.getAuthor().getFullName(),
                 announcement.getCreatedAt(),
-                announcement.isActive()
+                announcement.isActive(),
+                announcement.getCollege() != null ? announcement.getCollege().getId() : null,
+                announcement.getCollege() != null ? announcement.getCollege().getName() : null
         );
     }
 }

@@ -19,4 +19,6 @@ public class ClubResponse {
     private String coordinatorName;
     private LocalDateTime createdAt;
     private boolean active;
+    private Long collegeId;
+    private String collegeName;
 }

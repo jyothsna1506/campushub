@@ -29,18 +29,21 @@ public class OpportunityController {
     }
 
     @GetMapping
-    public ResponseEntity<List<OpportunityResponse>> getAllOpportunities() {
-        return ResponseEntity.ok(opportunityService.getAllOpportunities());
+    public ResponseEntity<List<OpportunityResponse>> getAllOpportunities(Principal principal) {
+        String email = principal != null ? principal.getName() : null;
+        return ResponseEntity.ok(opportunityService.getAllOpportunities(email));
     }
 
     @GetMapping("/active")
-    public ResponseEntity<List<OpportunityResponse>> getActiveOpportunities() {
-        return ResponseEntity.ok(opportunityService.getActiveOpportunities());
+    public ResponseEntity<List<OpportunityResponse>> getActiveOpportunities(Principal principal) {
+        String email = principal != null ? principal.getName() : null;
+        return ResponseEntity.ok(opportunityService.getActiveOpportunities(email));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<OpportunityResponse> getOpportunityById(@PathVariable Long id) {
-        return ResponseEntity.ok(opportunityService.getOpportunityById(id));
+    public ResponseEntity<OpportunityResponse> getOpportunityById(@PathVariable Long id, Principal principal) {
+        String email = principal != null ? principal.getName() : null;
+        return ResponseEntity.ok(opportunityService.getOpportunityById(id, email));
     }
 
     @PutMapping("/{id}")

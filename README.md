@@ -1,14 +1,50 @@
 # CampusHub
 
-CampusHub is a full-stack college collaboration and campus engagement platform designed for modern higher education institutions. It connects students, faculty coordinators, and campus administrators into a unified digital workspace covering student organizations, campus events, collaborative project teams, official campus announcements, career opportunities, and academic profiles.
+CampusHub is a full-stack multi-college collaboration, campus engagement, and academic management platform designed for modern higher education institutions. It connects students, faculty coordinators, and campus administrators into a unified digital workspace covering student organizations, campus events, collaborative project teams, official campus announcements, career opportunities, peer-to-peer campus community discussions, and student academic profiles.
 
-The platform is powered by a robust Spring Boot REST API featuring Spring Security role-based access control (RBAC), stateless JWT authentication, and a responsive React Single Page Application (SPA).
+The platform is powered by a robust Spring Boot REST API featuring strict multi-college tenancy isolation, Spring Security role-based access control (RBAC), stateless JWT authentication, Cloudinary media storage, and a responsive React Single Page Application (SPA) styled with Tailwind CSS.
+
+---
+
+## Architecture & Tenancy Isolation
+
+CampusHub enforces strict **Multi-College Tenancy Isolation**:
+
+```
+CampusHub Platform
+  ├── College A (e.g. CampusHub Demo College - DEMO)
+  │     ├── Students & Admins
+  │     ├── Clubs & Memberships
+  │     ├── Events & RSVPs
+  │     ├── Teams & Squad Requests
+  │     ├── Announcements & Circulars
+  │     ├── Opportunities
+  │     └── Community Posts & Comments
+  └── College B (e.g. Institute of Technology & Science - TECH)
+        ├── Students & Admins
+        ├── Clubs & Memberships
+        ├── Events & RSVPs
+        ├── Teams & Squad Requests
+        ├── Announcements & Circulars
+        ├── Opportunities
+        └── Community Posts & Comments
+```
+
+### Core Tenancy Rules:
+1. **One User → Exactly One College**: Every user belongs permanently to exactly one college chosen during registration from active institutions (`GET /api/colleges/active`).
+2. **Immutable College Affiliation**: A student's college cannot be modified through profile updates or client-side payload manipulation.
+3. **Cross-College Protection**:
+   - Students cannot view or join clubs belonging to other colleges (HTTP 403/404).
+   - Students cannot RSVP to events scheduled at other colleges.
+   - Students cannot submit join requests to project squads at other colleges.
+   - Discussions and comments in the Campus Community board are strictly partitioned by college.
+4. **Admin Scope**: Administrators belong to a specific college and have administrative governance restricted to their institution's students, clubs, events, announcements, and squads.
 
 ---
 
 ## Production Configuration
 
-CampusHub cleanly separates local development defaults from production environment requirements. In local development, the application runs with safe defaults (`localhost:8080`, `localhost:5173`). In production, all infrastructure details, database credentials, cryptographic secrets, and allowed origins are injected via environment variables.
+CampusHub cleanly separates local development defaults from production environment requirements. In local development, the application runs with safe defaults (`localhost:8080`, `localhost:5173`). In production, all infrastructure details, database credentials, cryptographic secrets, Cloudinary keys, and allowed origins are injected via environment variables.
 
 ### Environment Variables Reference
 
@@ -26,16 +62,21 @@ CampusHub cleanly separates local development defaults from production environme
 | `ADMIN_PASSWORD` | **Yes** | `Admin@123` | Initial password for the bootstrapped administrator account |
 | `ADMIN_FULL_NAME` | Optional | `Campus Administrator` | Display name for the initial administrator account |
 | `ADMIN_BOOTSTRAP_ENABLED` | Optional | `true` | Set to `false` to disable administrator bootstrapping |
+| `CLOUDINARY_CLOUD_NAME` | Optional | *empty (dev fallback)* | Cloudinary cloud name for profile photo uploads |
+| `CLOUDINARY_API_KEY` | Optional | *empty (dev fallback)* | Cloudinary API Key |
+| `CLOUDINARY_API_SECRET` | Optional | *empty (dev fallback)* | Cloudinary API Secret |
 | `DDL_AUTO` | Optional | `update` | Hibernate schema management mode (`none`, `validate`, `update`) |
 | `SHOW_SQL` | Optional | `false` | Disable SQL output in logs for production security |
+
+> [!NOTE]
+> When Cloudinary credentials are not supplied in development or testing environments, `CloudinaryService` seamlessly and safely falls back to Data URI storage, ensuring zero disruption to local workflows.
 
 #### Frontend (Vite + React)
 | Variable | Required in Production | Default (Development) | Description |
 | :--- | :--- | :--- | :--- |
 | `VITE_API_BASE_URL` | **Yes** | `http://localhost:8080` | Base URL of the backend REST API |
 
-> [!NOTE]
-> `VITE_*` environment variables are baked into frontend JavaScript bundles during `npm run build`. Never place backend secrets or database credentials in client-side `.env` files.
+---
 
 ### Safe Environment Template (`.env.example`)
 
@@ -54,6 +95,9 @@ ADMIN_EMAIL=admin@college.edu
 ADMIN_PASSWORD=
 ADMIN_FULL_NAME=Campus Administrator
 ADMIN_BOOTSTRAP_ENABLED=true
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
 DDL_AUTO=update
 SHOW_SQL=false
 
@@ -74,31 +118,25 @@ CampusHub implements defense-in-depth across the entire application stack:
    - The signing secret is stored exclusively on the backend and never exposed to the client.
 
 2. **Password Security**:
-   - Passwords are encrypted at rest using `BCryptPasswordEncoder`. Plaintext passwords are never persisted.
+   - Passwords are encrypted at rest using `BCryptPasswordEncoder`. Plaintext passwords are never persisted or logged.
    - Registration enforces a minimum of 8 characters (up to 72 characters, matching the BCrypt limit).
    - Password hashes are completely excluded from all response DTOs (`UserResponse`) across both public and admin user endpoints.
    - Login error handling uses uniform messages (`"Invalid email or password"`) preventing account enumeration attacks.
 
-3. **Role-Based Access Control (RBAC)**:
+3. **Multi-College Isolation & Ownership**:
+   - Data access for clubs, events, project teams, announcements, opportunities, and community posts is scoped to the user's registered college.
+   - Ownership controls ensure users cannot edit or delete resources created by peers.
+   - Profile updates prohibit role or college mutation.
+
+4. **Role-Based Access Control (RBAC)**:
    - System recognizes two roles: `ROLE_STUDENT` and `ROLE_ADMIN`.
    - All administrative routes (`/api/admin/**`) strictly require `ROLE_ADMIN`. Authenticated students attempting access receive HTTP 403 Forbidden.
    - Unauthenticated requests to protected endpoints return HTTP 401 Unauthorized.
-   - Authorities are derived directly from the database on every authenticated request—untrusted client claims cannot escalate privileges.
-
-4. **Resource Ownership & Anti-Tampering**:
-   - Public registration strictly forces the `STUDENT` role; client attempts to pass `role: "ADMIN"` are ignored.
-   - Profile updates (`PUT /api/users/{id}`) accept only editable fields (name, department, year, bio) and prohibit role modification.
-   - Resource updates and deletions enforce ownership checks:
-     - Events can only be updated or deleted by their creator (or an admin).
-     - Teams can only be updated or deleted by their squad owner.
-     - Team join requests can only be accepted/rejected by the squad owner.
-     - Club and Event RSVPs are strictly tied to the authenticated user's session.
-   - Last-admin protection: Backend logic prevents removing or demoting the last remaining administrator in both role update and user deletion operations.
+   - Last-admin protection: Backend logic prevents removing or demoting the last remaining administrator in an institution.
 
 5. **CORS Security**:
    - Configurable origins via `CORS_ALLOWED_ORIGIN`. No `Access-Control-Allow-Origin: *` wildcard when credentials or security headers are utilized.
    - Allowed methods explicitly restricted: `GET`, `POST`, `PUT`, `DELETE`, `PATCH`, `OPTIONS`.
-   - Preflight `OPTIONS` requests pass through cleanly without authentication friction.
 
 6. **Error Handling & Information Disclosure**:
    - `GlobalExceptionHandler` intercepts exceptions and standardizes responses: HTTP 400 (Validation), 401 (Authentication), 403 (Forbidden), 404 (Not Found), 409 (Conflict), and 500 (Internal Server Error).
@@ -109,16 +147,18 @@ CampusHub implements defense-in-depth across the entire application stack:
 ## Features
 
 ### Student Workspace
-- **Centralized Dashboard**: Live statistics, interactive upcoming events timeline, enrolled clubs overview, active project teams, prioritized announcements, and urgent opportunity deadlines.
-- **Clubs & Student Organizations**: Browse active organizations by category and academic department, view faculty coordinators, and manage one-click join/leave memberships.
+- **Campus Community**: Unified college discussion board supporting tagged posts (`DOUBT`, `QUESTION`, `ACHIEVEMENT`, `ADVICE`, `DISCUSSION`), type filtering, text search, author badges, and nested comment threads.
+- **Profile Image Management**: Direct photo upload and deletion integrated with Cloudinary (or local fallback), displaying avatars across headers, profile cards, and comments with initials fallback.
+- **Centralized Dashboard**: Live metrics, interactive upcoming events timeline, enrolled clubs overview, active project teams, prioritized announcements, and urgent opportunity deadlines.
+- **Clubs & Student Organizations**: Browse active organizations by category and department, view faculty coordinators, and manage one-click join/leave memberships.
 - **Campus Events & RSVP Engine**: Chronologically sorted campus events with real-time attendee quotas, seat capacities, date-tiles, and RSVP registration/cancellation workflows.
 - **Collaborative Project Teams**: Form student squads for hackathons, capstone projects, and research groups. Includes an interactive join request lifecycle (`PENDING`, `ACCEPTED`, `REJECTED`) managed by squad leaders.
 - **Campus Announcements**: Prioritized campus notices (`HIGH`, `MEDIUM`, `LOW`) categorized across Academic, Examination, Facilities, Placement, and Student Welfare boards.
-- **Career & Research Opportunities**: Discover internships, research assistantships, scholarships, and job postings with deadline tracking and external application links (`rel="noopener noreferrer"`).
-- **Student Profile**: Academic profile supporting degree program, engineering branch, graduation year, bio, and account details with self-service update controls.
+- **Career & Research Opportunities**: Discover internships, research assistantships, scholarships, and job postings with deadline tracking and external application links.
+- **Student Profile**: Academic profile supporting degree program, branch, graduation year, bio, enrolled college (read-only), and photo customization.
 
 ### Administrator Console (`/admin`)
-- **Backend-Enforced Authorization**: Complete protection under `/api/admin/**` rejecting non-admin requests with HTTP 403 Forbidden.
+- **College-Scoped Governance**: Complete administration scoped strictly to the administrator's college.
 - **Metrics Dashboard**: Direct database counts for registered users, total/active clubs, scheduled events, teams, active announcements, and open opportunities.
 - **User Governance**: Searchable user registry with role filtering, role reassignment modal, and administrator promotion/demotion safeguards.
 - **Club Administration**: Create, update, and manage official student organizations and faculty coordinators.
@@ -145,6 +185,7 @@ CampusHub implements defense-in-depth across the entire application stack:
 - **Security**: Spring Security (Stateless JWT Filter, DaoAuthenticationProvider, BCrypt)
 - **ORM / Persistence**: Spring Data JPA, Hibernate ORM
 - **Database Driver**: MySQL Connector/J
+- **Media Storage**: Cloudinary SDK (with seamless data URI fallback)
 - **Token Utility**: JJWT (Java JWT)
 - **Boilerplate Reduction**: Project Lombok
 
@@ -177,9 +218,9 @@ java -jar target/backend-0.0.1-SNAPSHOT.jar
 ./mvnw clean package -DskipTests
 java -jar target/backend-0.0.1-SNAPSHOT.jar
 ```
-The backend initializes on `http://localhost:8080`. On first launch, the `AdminBootstrapRunner` automatically creates the administrator account:
-- Email: `admin@college.edu`
-- Password: `Admin@123`
+The backend initializes on `http://localhost:8080`. On first launch, the `AdminBootstrapRunner` automatically creates:
+- Colleges: `DEMO` ("CampusHub Demo College") and `TECH` ("Institute of Technology & Science")
+- Administrator: `admin@college.edu` / `Admin@123` (associated with `DEMO`)
 
 ### 3. Frontend Startup
 From the `frontend/` directory:
@@ -195,7 +236,7 @@ npm run dev
 The Vite development server runs on `http://localhost:5173`.
 
 ### 4. Running Verification & Regression Tests
-Run the comprehensive security test suite from `backend/`:
+Run the comprehensive 24-test security regression suite from `backend/`:
 ```bash
 # Windows
 .\mvnw.cmd test -Dtest=SecurityRegressionTests
@@ -210,57 +251,47 @@ Run the comprehensive security test suite from `backend/`:
 
 | Group | Method | Path | Access | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| **Home** | `GET` | `/` | Public | System status and welcome endpoint |
+| **Colleges** | `GET` | `/api/colleges/active` | Public | List active colleges for student registration |
+| **Colleges** | `GET` | `/api/colleges/{id}` | Authenticated | Retrieve college details |
 | **Auth** | `POST` | `/api/auth/login` | Public | Authenticate user & receive JWT token |
-| **Users** | `POST` | `/api/users` | Public | Register student (role forced to `STUDENT`) |
-| **Users** | `GET` | `/api/users` | Authenticated | List registered users |
+| **Users** | `POST` | `/api/users` | Public | Register student with selected `collegeId` |
+| **Users** | `GET` | `/api/users` | Authenticated | List registered users in caller's college |
 | **Users** | `GET` | `/api/users/{id}` | Authenticated | Retrieve user profile details |
-| **Users** | `PUT` | `/api/users/{id}` | Authenticated (Owner/Admin)| Update personal academic profile |
-| **Users** | `DELETE` | `/api/users/{id}` | Authenticated (Owner/Admin)| Delete user account (last-admin guarded) |
-| **Clubs** | `GET` | `/api/clubs` | Authenticated | List all clubs |
-| **Clubs** | `GET` | `/api/clubs/active` | Authenticated | List active clubs |
+| **Users** | `PUT` | `/api/users/{id}` | Authenticated (Owner/Admin)| Update personal profile (college is immutable) |
+| **Users** | `POST` | `/api/users/profile-image` | Authenticated | Upload or replace user profile photo |
+| **Users** | `DELETE`| `/api/users/profile-image` | Authenticated | Remove user profile photo |
+| **Community** | `GET` | `/api/community/posts` | Authenticated | List community posts in caller's college |
+| **Community** | `POST`| `/api/community/posts` | Authenticated | Create a community post (type, title, content) |
+| **Community** | `GET` | `/api/community/posts/{id}`| Authenticated | Get post details and comments |
+| **Community** | `DELETE`| `/api/community/posts/{id}`| Authenticated (Author/Admin)| Delete a community post |
+| **Community** | `POST`| `/api/community/posts/{id}/comments`| Authenticated | Add a comment to a community post |
+| **Community** | `DELETE`| `/api/community/comments/{id}`| Authenticated (Author/Admin)| Delete a comment |
+| **Clubs** | `GET` | `/api/clubs` | Authenticated | List clubs in caller's college |
+| **Clubs** | `GET` | `/api/clubs/active` | Authenticated | List active clubs in caller's college |
 | **Clubs** | `GET` | `/api/clubs/{id}` | Authenticated | Retrieve club details |
-| **Clubs** | `POST` | `/api/clubs/{id}/join` | Authenticated | Join a student organization |
+| **Clubs** | `POST` | `/api/clubs/{id}/join` | Authenticated | Join a club (cross-college rejected 403) |
 | **Clubs** | `DELETE` | `/api/clubs/{id}/leave`| Authenticated | Leave a student organization |
 | **Clubs** | `GET` | `/api/clubs/{id}/members` | Authenticated | List members of a club |
 | **Clubs** | `GET` | `/api/users/me/clubs` | Authenticated | Get current user's club memberships |
-| **Events** | `GET` | `/api/events` | Authenticated | List all events |
-| **Events** | `GET` | `/api/events/active` | Authenticated | List active upcoming events |
+| **Events** | `GET` | `/api/events` | Authenticated | List events in caller's college |
+| **Events** | `GET` | `/api/events/active` | Authenticated | List upcoming events in caller's college |
 | **Events** | `GET` | `/api/events/{id}` | Authenticated | Retrieve event details |
-| **Events** | `POST` | `/api/events` | Authenticated | Create a campus event |
+| **Events** | `POST` | `/api/events` | Authenticated | Create an event within caller's college |
 | **Events** | `PUT` | `/api/events/{id}` | Authenticated (Organizer) | Update event details |
 | **Events** | `DELETE` | `/api/events/{id}` | Authenticated (Organizer) | Delete event |
-| **Events** | `POST` | `/api/events/{id}/rsvp` | Authenticated | RSVP to an event |
+| **Events** | `POST` | `/api/events/{id}/rsvp` | Authenticated | RSVP to an event (cross-college rejected 403) |
 | **Events** | `DELETE` | `/api/events/{id}/rsvp` | Authenticated | Cancel event RSVP |
 | **Events** | `GET` | `/api/events/{id}/attendees` | Authenticated | List attendees for an event |
-| **Events** | `GET` | `/api/users/me/events` | Authenticated | Get current user's RSVPs |
-| **Teams** | `GET` | `/api/teams` | Authenticated | List all teams |
-| **Teams** | `GET` | `/api/teams/open` | Authenticated | List teams open for members |
-| **Teams** | `GET` | `/api/teams/{id}` | Authenticated | Retrieve team details |
-| **Teams** | `POST` | `/api/teams` | Authenticated | Create project collaboration team |
-| **Teams** | `PUT` | `/api/teams/{id}` | Authenticated (Owner) | Update team details |
-| **Teams** | `DELETE` | `/api/teams/{id}` | Authenticated (Owner) | Delete team and cascade members |
-| **Teams** | `POST` | `/api/teams/{id}/join-requests` | Authenticated | Request to join a squad |
-| **Teams** | `DELETE` | `/api/teams/join-requests/{id}` | Authenticated (Requester)| Cancel pending join request |
-| **Teams** | `GET` | `/api/teams/{id}/members` | Authenticated | List team members |
-| **Teams** | `GET` | `/api/teams/{id}/join-requests` | Authenticated (Owner) | View pending squad requests |
+| **Teams** | `GET` | `/api/teams` | Authenticated | List teams in caller's college |
+| **Teams** | `GET` | `/api/teams/open` | Authenticated | List teams open for members in caller's college |
+| **Teams** | `POST` | `/api/teams` | Authenticated | Create team in caller's college |
+| **Teams** | `POST` | `/api/teams/{id}/join-requests` | Authenticated | Request to join squad (cross-college rejected 403) |
 | **Teams** | `PUT` | `/api/teams/join-requests/{id}/accept` | Authenticated (Owner) | Accept member into squad |
 | **Teams** | `PUT` | `/api/teams/join-requests/{id}/reject` | Authenticated (Owner) | Reject member join request |
-| **Teams** | `GET` | `/api/users/me/teams` | Authenticated | List teams owned by current user |
-| **Teams** | `GET` | `/api/users/me/team-requests` | Authenticated | List current user's sent requests |
-| **Announcements** | `GET` | `/api/announcements` | Authenticated | List announcements |
-| **Announcements** | `GET` | `/api/announcements/active` | Authenticated | List active announcements |
-| **Announcements** | `POST` | `/api/announcements` | Authenticated | Create announcement |
-| **Announcements** | `PUT` | `/api/announcements/{id}` | Authenticated (Author) | Update announcement |
-| **Announcements** | `DELETE` | `/api/announcements/{id}` | Authenticated (Author) | Delete announcement |
-| **Opportunities** | `GET` | `/api/opportunities` | Authenticated | List opportunities |
-| **Opportunities** | `GET` | `/api/opportunities/active` | Authenticated | List active opportunities |
-| **Opportunities** | `POST` | `/api/opportunities` | Authenticated | Post an opportunity |
-| **Opportunities** | `PUT` | `/api/opportunities/{id}` | Authenticated (Poster) | Update opportunity |
-| **Opportunities** | `DELETE` | `/api/opportunities/{id}` | Authenticated (Poster) | Delete opportunity |
-| **Admin Stats** | `GET` | `/api/admin/dashboard/stats` | **ROLE_ADMIN** | High-performance aggregate counts |
-| **Admin Users** | `GET` | `/api/admin/users` | **ROLE_ADMIN** | Search and filter user accounts |
-| **Admin Users** | `GET` | `/api/admin/users/{id}` | **ROLE_ADMIN** | Get detailed user info |
+| **Announcements** | `GET` | `/api/announcements` | Authenticated | List announcements in caller's college |
+| **Opportunities** | `GET` | `/api/opportunities` | Authenticated | List opportunities in caller's college |
+| **Admin Stats** | `GET` | `/api/admin/dashboard/stats` | **ROLE_ADMIN** | High-performance college-scoped counts |
+| **Admin Users** | `GET` | `/api/admin/users` | **ROLE_ADMIN** | Search and filter college user accounts |
 | **Admin Users** | `PUT` | `/api/admin/users/{id}/role` | **ROLE_ADMIN** | Update role (`STUDENT` / `ADMIN`) |
 | **Admin Clubs** | `GET`, `POST`, `PUT`, `DELETE` | `/api/admin/clubs[/{id}]` | **ROLE_ADMIN** | Full club administration |
 | **Admin Events** | `GET`, `POST`, `PUT`, `DELETE` | `/api/admin/events[/{id}]` | **ROLE_ADMIN** | Full event administration |
@@ -272,27 +303,17 @@ Run the comprehensive security test suite from `backend/`:
 
 ## Production Readiness Checklist
 
+- [x] **Multi-College Tenancy Isolation**: 1 user = 1 college, college immutable after registration, cross-college actions strictly rejected (HTTP 403/404).
+- [x] **Campus Community Board**: Discussion categories (`DOUBT`, `QUESTION`, `ACHIEVEMENT`, `ADVICE`, `DISCUSSION`), nested comments, search, and college partitioning.
+- [x] **Profile Image Upload**: Cloudinary integration with graceful local fallback, image deletion, and avatar rendering with initials fallback.
 - [x] **Configurable Secrets**: Database credentials, JWT secrets, and admin bootstrap settings inject via environment variables.
 - [x] **Stateless Security**: Spring Security stateless session policy with JWT validation filter.
 - [x] **Role-Based Authorization**: Distinct `ROLE_STUDENT` and `ROLE_ADMIN` role hierarchy; non-admin users cannot access `/api/admin/**`.
 - [x] **Input Validation**: Request DTOs enforced with Jakarta Bean Validation (`@NotBlank`, `@Size`, `@Email`, `@Min`, `@NotNull`).
 - [x] **Zero Information Disclosure**: Global exception handler masks stack traces and internal errors; login errors avoid user enumeration.
 - [x] **Resource Ownership Controls**: Users cannot modify or delete resources owned by other users.
-- [x] **Data Consistency & Atomicity**: Multi-step operations (`UserService`, `TeamService`, `ClubService`, `EventService`) run within `@Transactional` boundaries.
+- [x] **Data Consistency & Atomicity**: Multi-step operations run within `@Transactional` boundaries.
 - [x] **Production Build Verified**:
   - Frontend: `npm run build` succeeds with 0 TypeScript and 0 Vite build errors.
   - Backend: `./mvnw.cmd clean package -DskipTests` produces valid executable Spring Boot fat JAR.
-- [x] **Automated Security Regression Suite**: 15 automated integration tests verify authentication, authorization, RBAC boundaries, CORS, last-admin protection, and error masking.
-
----
-
-## Known Limitations & Future Work
-
-1. **Database Schema Migrations**:
-   - The application currently uses Hibernate DDL management (`spring.jpa.hibernate.ddl-auto=update`). In production enterprise deployments, adopting Flyway or Liquibase is recommended for deterministic version-controlled database schema migrations.
-2. **Token Invalidation / Revocation**:
-   - JWT tokens are stateless with a 24-hour expiration window. Immediate token revocation prior to expiry (e.g. upon user logout) currently relies on client-side token discard. Future iterations may implement a Redis token denylist or refresh token rotation pattern.
-3. **Persistent Media Uploads**:
-   - Organization logos and user profile pictures currently utilize URLs or placeholder initials. Dedicated object storage (AWS S3 or MinIO) is planned for direct media uploads.
-4. **Rate Limiting**:
-   - In production ingress / reverse proxy configurations (e.g. Nginx, Cloudflare), rate-limiting should be configured on `/api/auth/login` to mitigate brute-force attempts.
+- [x] **Automated Security Regression Suite**: 24 automated integration tests verify authentication, authorization, multi-college boundaries, cross-college access rejection, community discussions, profile photo management, and last-admin protection.

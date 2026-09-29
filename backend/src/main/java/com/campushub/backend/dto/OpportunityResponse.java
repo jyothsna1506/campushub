@@ -26,4 +26,6 @@ public class OpportunityResponse {
     private String postedByName;
     private LocalDateTime createdAt;
     private boolean active;
+    private Long collegeId;
+    private String collegeName;
 }

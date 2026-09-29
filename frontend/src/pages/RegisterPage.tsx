@@ -1,8 +1,10 @@
-import { useState, type FormEvent } from 'react'
+import { useState, useEffect, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { useAuth } from '../context/AuthContext'
+import { collegeApi } from '../services/collegeApi'
 import { getApiErrorMessage } from '../services/api'
+import type { College } from '../types'
 
 const PROGRAM_OPTIONS = [
   'B.Tech',
@@ -50,6 +52,10 @@ function getYearLabel(yearNumber: number): string {
 }
 
 export default function RegisterPage() {
+  const [colleges, setColleges] = useState<College[]>([])
+  const [collegeId, setCollegeId] = useState<number | ''>('')
+  const [isLoadingColleges, setIsLoadingColleges] = useState(true)
+
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -59,6 +65,7 @@ export default function RegisterPage() {
   const [bio, setBio] = useState('')
 
   const [fieldErrors, setFieldErrors] = useState<{
+    collegeId?: string
     fullName?: string
     email?: string
     password?: string
@@ -71,6 +78,22 @@ export default function RegisterPage() {
 
   const { register } = useAuth()
   const navigate = useNavigate()
+
+  useEffect(() => {
+    collegeApi.getActiveColleges()
+      .then((data) => {
+        setColleges(data)
+        if (data.length === 1) {
+          setCollegeId(data[0].id)
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to load colleges', err)
+      })
+      .finally(() => {
+        setIsLoadingColleges(false)
+      })
+  }, [])
 
   // Calculate available year options dynamically based on selected program
   const maxYears = program ? PROGRAM_YEAR_COUNTS[program] || 4 : 0
@@ -95,6 +118,9 @@ export default function RegisterPage() {
     const trimmedName = fullName.trim()
     const trimmedEmail = email.trim()
 
+    if (!collegeId) {
+      errors.collegeId = 'Please select your college / institution.'
+    }
     if (!trimmedName) {
       errors.fullName = 'Full name is required.'
     }
@@ -135,6 +161,7 @@ export default function RegisterPage() {
         branch,
         year: Number(year),
         bio: bio.trim() || undefined,
+        collegeId: Number(collegeId),
       })
 
       navigate('/login', {
@@ -193,6 +220,43 @@ export default function RegisterPage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+            {/* College Selection */}
+            <div>
+              <label
+                htmlFor="register-college"
+                className="block text-sm font-medium text-slate-700"
+              >
+                Select College / Institution <span className="text-rose-500">*</span>
+              </label>
+              <select
+                id="register-college"
+                required
+                value={collegeId}
+                onChange={(e) => {
+                  setCollegeId(e.target.value ? Number(e.target.value) : '')
+                  if (fieldErrors.collegeId) setFieldErrors((p) => ({ ...p, collegeId: undefined }))
+                }}
+                disabled={isSubmitting || isLoadingColleges}
+                className={`mt-1 block w-full px-3.5 py-2.5 rounded-lg border bg-white text-slate-900 text-sm transition-all shadow-sm disabled:bg-slate-50 disabled:cursor-not-allowed ${
+                  fieldErrors.collegeId
+                    ? 'border-rose-300 focus:border-rose-500 focus:ring-2 focus:ring-rose-500'
+                    : 'border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-teal-600'
+                }`}
+              >
+                <option value="">
+                  {isLoadingColleges ? 'Loading available colleges...' : '-- Choose your campus --'}
+                </option>
+                {colleges.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name} ({c.code})
+                  </option>
+                ))}
+              </select>
+              {fieldErrors.collegeId && (
+                <p className="text-xs text-rose-600 mt-1 font-medium">{fieldErrors.collegeId}</p>
+              )}
+            </div>
+
             {/* Full Name */}
             <div>
               <label

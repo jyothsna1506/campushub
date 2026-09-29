@@ -5,9 +5,12 @@ import com.campushub.backend.dto.UserResponse;
 import com.campushub.backend.dto.UserUpdateRequest;
 import com.campushub.backend.service.UserService;
 import jakarta.validation.Valid;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.security.Principal;
 import java.util.List;
 import java.util.Map;
@@ -33,8 +36,9 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public UserResponse getUserById(@PathVariable Long id) {
-        return userService.getUserResponseById(id);
+    public UserResponse getUserById(@PathVariable Long id, Principal principal) {
+        String email = principal != null ? principal.getName() : null;
+        return userService.getUserResponseById(id, email);
     }
 
     @PutMapping("/{id}")
@@ -49,5 +53,18 @@ public class UserController {
                                                           Principal principal) {
         userService.deleteUser(id, principal.getName());
         return ResponseEntity.ok(Map.of("message", "User deleted successfully!"));
+    }
+
+    @PostMapping(value = "/me/profile-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<UserResponse> uploadProfileImage(@RequestParam("file") MultipartFile file,
+                                                           Principal principal) throws IOException {
+        UserResponse response = userService.uploadProfileImage(principal.getName(), file);
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/me/profile-image")
+    public ResponseEntity<UserResponse> deleteProfileImage(Principal principal) {
+        UserResponse response = userService.deleteProfileImage(principal.getName());
+        return ResponseEntity.ok(response);
     }
 }

@@ -14,4 +14,16 @@ public interface OpportunityRepository extends JpaRepository<Opportunity, Long> 
     List<Opportunity> findAllByOrderByApplicationDeadlineAsc();
 
     long countByActiveTrue();
+
+    List<Opportunity> findByCollegeIdAndActiveTrueOrderByApplicationDeadlineAsc(Long collegeId);
+
+    List<Opportunity> findByCollegeIdOrderByApplicationDeadlineAsc(Long collegeId);
+
+    java.util.Optional<Opportunity> findByIdAndCollegeIdAndActiveTrue(Long id, Long collegeId);
+
+    java.util.Optional<Opportunity> findByIdAndCollegeId(Long id, Long collegeId);
+
+    long countByCollegeIdAndActiveTrue(Long collegeId);
+
+    long countByCollegeId(Long collegeId);
 }

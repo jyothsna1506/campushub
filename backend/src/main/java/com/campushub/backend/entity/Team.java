@@ -30,6 +30,10 @@ public class Team {
     @Column(nullable = false)
     private boolean openForMembers = true;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "college_id")
+    private College college;
+
     public Team() {
     }
 
@@ -94,5 +98,13 @@ public class Team {
 
     public void setOpenForMembers(boolean openForMembers) {
         this.openForMembers = openForMembers;
+    }
+
+    public College getCollege() {
+        return college;
+    }
+
+    public void setCollege(College college) {
+        this.college = college;
     }
 }

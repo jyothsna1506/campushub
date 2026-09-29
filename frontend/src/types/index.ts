@@ -1,3 +1,20 @@
+// College Types
+export interface College {
+  id: number
+  name: string
+  code: string
+  description?: string
+  active?: boolean
+  createdAt?: string
+}
+
+export interface CollegeRequest {
+  name: string
+  code: string
+  description?: string
+  active?: boolean
+}
+
 // Auth & User Types
 export interface UserResponse {
   id: number
@@ -8,6 +25,10 @@ export interface UserResponse {
   year?: number
   bio?: string
   role?: string
+  collegeId?: number
+  collegeName?: string
+  collegeCode?: string
+  profileImageUrl?: string
 }
 
 export interface UserUpdateRequest {
@@ -28,6 +49,7 @@ export interface RegisterRequest {
   branch?: string
   year?: number
   bio?: string
+  collegeId: number
 }
 
 export interface LoginRequest {
@@ -59,6 +81,8 @@ export interface ClubResponse {
   coordinatorName: string
   createdAt: string
   active: boolean
+  collegeId?: number
+  collegeName?: string
 }
 
 export interface ClubMemberResponse {
@@ -98,6 +122,8 @@ export interface EventResponse {
   capacity: number
   createdAt: string
   active: boolean
+  collegeId?: number
+  collegeName?: string
 }
 
 export interface EventRsvpResponse {
@@ -130,6 +156,8 @@ export interface TeamResponse {
   ownerName: string
   createdAt: string
   openForMembers: boolean
+  collegeId?: number
+  collegeName?: string
 }
 
 export interface TeamMemberResponse {
@@ -174,6 +202,8 @@ export interface AnnouncementResponse {
   authorName: string
   createdAt: string
   active: boolean
+  collegeId?: number
+  collegeName?: string
 }
 
 // Opportunity Types
@@ -200,6 +230,47 @@ export interface OpportunityResponse {
   postedByName: string
   createdAt: string
   active: boolean
+  collegeId?: number
+  collegeName?: string
+}
+
+// Community Types
+export type CommunityPostType = 'DOUBT' | 'QUESTION' | 'ACHIEVEMENT' | 'ADVICE' | 'DISCUSSION'
+
+export interface CommunityPost {
+  id: number
+  title: string
+  content: string
+  type: CommunityPostType
+  authorId: number
+  authorName: string
+  authorProfileImageUrl?: string
+  collegeId: number
+  collegeName: string
+  createdAt: string
+  updatedAt?: string
+  commentCount: number
+  active: boolean
+}
+
+export interface CommunityPostRequest {
+  title: string
+  content: string
+  type: CommunityPostType
+}
+
+export interface CommunityComment {
+  id: number
+  postId: number
+  authorId: number
+  authorName: string
+  authorProfileImageUrl?: string
+  content: string
+  createdAt: string
+}
+
+export interface CommunityCommentRequest {
+  content: string
 }
 
 // Admin Types
@@ -214,9 +285,11 @@ export interface AdminDashboardStatsResponse {
   activeAnnouncements: number
   totalOpportunities: number
   activeOpportunities: number
+  collegeId?: number
+  collegeName?: string
+  collegeCode?: string
 }
 
 export interface UpdateUserRoleRequest {
   role: 'STUDENT' | 'ADMIN'
 }
-

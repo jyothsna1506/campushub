@@ -41,6 +41,10 @@ public class EventRsvpService {
             throw new DuplicateResourceException("Cannot RSVP to an inactive event");
         }
 
+        if (user.getCollege() != null && event.getCollege() != null && !user.getCollege().getId().equals(event.getCollege().getId())) {
+            throw new org.springframework.security.access.AccessDeniedException("Cannot RSVP to an event belonging to another college");
+        }
+
         if (eventRsvpRepository.existsByUserAndEvent(user, event)) {
             throw new DuplicateResourceException("You have already RSVP'd to this event: " + event.getTitle());
         }

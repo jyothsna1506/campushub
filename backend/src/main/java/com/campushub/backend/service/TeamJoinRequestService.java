@@ -50,6 +50,10 @@ public class TeamJoinRequestService {
             throw new DuplicateResourceException("Team is not currently open for new members");
         }
 
+        if (user.getCollege() != null && team.getCollege() != null && !user.getCollege().getId().equals(team.getCollege().getId())) {
+            throw new org.springframework.security.access.AccessDeniedException("Cannot request to join a team belonging to another college");
+        }
+
         if (team.getOwner().getId().equals(user.getId())) {
             throw new DuplicateResourceException("You are already the owner of this team");
         }

@@ -25,4 +25,6 @@ public class EventResponse {
     private Integer capacity;
     private LocalDateTime createdAt;
     private boolean active;
+    private Long collegeId;
+    private String collegeName;
 }

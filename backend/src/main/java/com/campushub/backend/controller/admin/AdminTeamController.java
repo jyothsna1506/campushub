@@ -7,6 +7,7 @@ import com.campushub.backend.service.TeamJoinRequestService;
 import com.campushub.backend.service.TeamService;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -22,13 +23,13 @@ public class AdminTeamController {
     }
 
     @GetMapping
-    public List<TeamResponse> getAllTeams() {
-        return teamService.getAllTeams();
+    public List<TeamResponse> getAllTeams(Principal principal) {
+        return teamService.getAllTeams(principal != null ? principal.getName() : null);
     }
 
     @GetMapping("/{id}")
-    public TeamResponse getTeamById(@PathVariable Long id) {
-        return teamService.getTeamById(id);
+    public TeamResponse getTeamById(@PathVariable Long id, Principal principal) {
+        return teamService.getTeamById(id, principal != null ? principal.getName() : null);
     }
 
     @GetMapping("/{id}/members")
@@ -42,7 +43,7 @@ public class AdminTeamController {
     }
 
     @DeleteMapping("/{id}")
-    public void deleteTeam(@PathVariable Long id) {
-        teamService.adminDeleteTeam(id);
+    public void deleteTeam(@PathVariable Long id, Principal principal) {
+        teamService.adminDeleteTeam(id, principal != null ? principal.getName() : null);
     }
 }

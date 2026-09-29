@@ -12,4 +12,16 @@ public interface ClubRepository extends JpaRepository<Club, Long> {
     List<Club> findByActiveTrue();
 
     long countByActiveTrue();
+
+    List<Club> findByCollegeIdAndActiveTrue(Long collegeId);
+
+    List<Club> findByCollegeId(Long collegeId);
+
+    java.util.Optional<Club> findByIdAndCollegeIdAndActiveTrue(Long id, Long collegeId);
+
+    java.util.Optional<Club> findByIdAndCollegeId(Long id, Long collegeId);
+
+    long countByCollegeIdAndActiveTrue(Long collegeId);
+
+    long countByCollegeId(Long collegeId);
 }

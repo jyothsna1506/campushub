@@ -20,13 +20,13 @@ public class AdminEventController {
     }
 
     @GetMapping
-    public List<EventResponse> getAllEvents() {
-        return eventService.getAllEvents();
+    public List<EventResponse> getAllEvents(Authentication authentication) {
+        return eventService.getAllEvents(authentication != null ? authentication.getName() : null);
     }
 
     @GetMapping("/{id}")
-    public EventResponse getEventById(@PathVariable Long id) {
-        return eventService.getEventById(id);
+    public EventResponse getEventById(@PathVariable Long id, Authentication authentication) {
+        return eventService.getEventById(id, authentication != null ? authentication.getName() : null);
     }
 
     @PostMapping
@@ -35,12 +35,12 @@ public class AdminEventController {
     }
 
     @PutMapping("/{id}")
-    public EventResponse updateEvent(@PathVariable Long id, @Valid @RequestBody EventRequest request) {
-        return eventService.adminUpdateEvent(id, request);
+    public EventResponse updateEvent(@PathVariable Long id, @Valid @RequestBody EventRequest request, Authentication authentication) {
+        return eventService.adminUpdateEvent(id, request, authentication != null ? authentication.getName() : null);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteEvent(@PathVariable Long id) {
-        eventService.adminDeleteEvent(id);
+    public void deleteEvent(@PathVariable Long id, Authentication authentication) {
+        eventService.adminDeleteEvent(id, authentication != null ? authentication.getName() : null);
     }
 }

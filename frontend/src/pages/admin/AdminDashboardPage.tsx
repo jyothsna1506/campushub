@@ -32,13 +32,20 @@ export default function AdminDashboardPage() {
       <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-blue-950 rounded-2xl p-6 sm:p-8 text-white shadow-sm border border-slate-800">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 text-blue-300 text-xs font-semibold mb-3 border border-blue-400/30">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              Production RBAC Active
+            <div className="flex flex-wrap items-center gap-2 mb-3">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 text-blue-300 text-xs font-semibold border border-blue-400/30">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                Production RBAC Active
+              </div>
+              {stats?.collegeName && (
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-bold border border-amber-400/30">
+                  🏛️ Scope: {stats.collegeName} ({stats.collegeCode})
+                </div>
+              )}
             </div>
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Admin System Console</h1>
             <p className="text-sm text-slate-300 mt-1 max-w-xl">
-              Complete administrative governance for CampusHub users, organizations, events, opportunities, and campus announcements.
+              Complete administrative governance for {stats?.collegeName || 'CampusHub'} users, organizations, events, opportunities, and campus announcements.
             </p>
           </div>
           <button

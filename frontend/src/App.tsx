@@ -13,6 +13,7 @@ import TeamsPage from './pages/TeamsPage'
 import AnnouncementsPage from './pages/AnnouncementsPage'
 import OpportunitiesPage from './pages/OpportunitiesPage'
 import ProfilePage from './pages/ProfilePage'
+import CommunityPage from './pages/CommunityPage'
 import NotFoundPage from './pages/NotFoundPage'
 import AdminRoute from './components/AdminRoute'
 import AdminLayout from './layouts/AdminLayout'
@@ -41,6 +42,7 @@ export default function App() {
           <Route element={<ProtectedRoute />}>
             <Route element={<AppLayout />}>
               <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/community" element={<CommunityPage />} />
               <Route path="/clubs" element={<ClubsPage />} />
               <Route path="/events" element={<EventsPage />} />
               <Route path="/teams" element={<TeamsPage />} />

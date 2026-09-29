@@ -29,18 +29,21 @@ public class EventController {
     }
 
     @GetMapping
-    public ResponseEntity<List<EventResponse>> getAllEvents() {
-        return ResponseEntity.ok(eventService.getAllEvents());
+    public ResponseEntity<List<EventResponse>> getAllEvents(Principal principal) {
+        String email = principal != null ? principal.getName() : null;
+        return ResponseEntity.ok(eventService.getAllEvents(email));
     }
 
     @GetMapping("/active")
-    public ResponseEntity<List<EventResponse>> getActiveEvents() {
-        return ResponseEntity.ok(eventService.getActiveEvents());
+    public ResponseEntity<List<EventResponse>> getActiveEvents(Principal principal) {
+        String email = principal != null ? principal.getName() : null;
+        return ResponseEntity.ok(eventService.getActiveEvents(email));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<EventResponse> getEventById(@PathVariable Long id) {
-        return ResponseEntity.ok(eventService.getEventById(id));
+    public ResponseEntity<EventResponse> getEventById(@PathVariable Long id, Principal principal) {
+        String email = principal != null ? principal.getName() : null;
+        return ResponseEntity.ok(eventService.getEventById(id, email));
     }
 
     @PutMapping("/{id}")

@@ -41,6 +41,10 @@ public class Opportunity {
     @Column(nullable = false)
     private boolean active = true;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "college_id")
+    private College college;
+
     public Opportunity() {
     }
 
@@ -137,5 +141,13 @@ public class Opportunity {
 
     public void setActive(boolean active) {
         this.active = active;
+    }
+
+    public College getCollege() {
+        return college;
+    }
+
+    public void setCollege(College college) {
+        this.college = college;
     }
 }

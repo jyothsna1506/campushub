@@ -18,4 +18,14 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     List<User> findByRoleAndFullNameContainingIgnoreCaseOrRoleAndEmailContainingIgnoreCase(
             String role1, String name, String role2, String email);
+
+    long countByCollegeId(Long collegeId);
+
+    long countByCollegeIdAndRole(Long collegeId, String role);
+
+    List<User> findByCollegeId(Long collegeId);
+
+    List<User> findByCollegeIdAndRole(Long collegeId, String role);
+
+    Optional<User> findByIdAndCollegeId(Long id, Long collegeId);
 }
