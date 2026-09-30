@@ -582,4 +582,12 @@ public class SecurityRegressionTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.profileImageUrl").doesNotExist());
     }
+
+    @Test
+    @DisplayName("Health endpoint /api/health is publicly accessible and reports UP")
+    void testHealthEndpointIsPublicAndReturnsUp() throws Exception {
+        mockMvc.perform(get("/api/health"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("UP"));
+    }
 }
